@@ -17,6 +17,8 @@ import scoring as sc
 import peers as pr
 import news as nw
 import backtest as bt
+import profile as pf
+import handbook as hb
 
 try:
     import db
@@ -128,6 +130,91 @@ def wl_unpin(ticker):
         st.session_state.get("watchlist", []).remove(ticker)
 
 
+# --- investor profile ------------------------------------------------------- #
+def get_profile():
+    if "profile" in st.session_state:
+        return st.session_state["profile"]
+    if _HAS_DB:
+        try:
+            p = db.load_profile()
+            if p:
+                st.session_state["profile"] = p
+                return p
+        except Exception:
+            pass
+    return None
+
+
+def save_profile_data(p):
+    st.session_state["profile"] = p
+    if _HAS_DB:
+        try:
+            db.save_profile(p)
+        except Exception:
+            pass
+
+
+def show_onboarding():
+    st.title("📋 First, a quick risk & goals assessment")
+    st.write("This shapes every score and suitability check that follows. It's a "
+             "self-assessment of your preferences — not advice, and not a clinical "
+             "test. Takes about a minute.")
+    with st.form("onboarding"):
+        answers = {}
+        for q in pf.QUESTIONS:
+            labels = [o[0] for o in q["opts"]]
+            choice = st.radio(q["q"], labels, key=f"q_{q['id']}")
+            answers[q["id"]] = dict(q["opts"])[choice]
+        submitted = st.form_submit_button("Build my profile")
+    if submitted:
+        save_profile_data(pf.score_answers(answers))
+        st.session_state.pop("force_onboarding", None)
+        st.rerun()
+
+
+def show_suitability(profile, f, overall, rr):
+    s = pf.assess_suitability(profile, f, overall, rr)
+    st.markdown("#### Does this suit *you*?")
+    v = s["verdict"]
+    (st.success if "Fits" in v else st.error if "Poor" in v else st.warning)(v)
+    cc = st.columns(2)
+    with cc[0]:
+        st.markdown("**Why it fits**")
+        for p in s["pros"]:
+            st.markdown(f"🟢 {p}")
+        if not s["pros"]:
+            st.caption("No strong fit signals.")
+    with cc[1]:
+        st.markdown("**Why it might not**")
+        for c in s["cons"]:
+            st.markdown(f"🔴 {c}")
+        if not s["cons"]:
+            st.caption("No strong mismatch signals.")
+    st.caption("Based on your stated profile, not financial advice.")
+
+
+def show_handbook():
+    st.markdown("#### 📚 Investor handbook")
+    q = st.text_input("Search a concept", placeholder="e.g. Sharpe, PEG, RSI").lower().strip()
+    shown = 0
+    for cid, c in hb.CONCEPTS.items():
+        if q and q not in c["name"].lower() and q not in cid:
+            continue
+        shown += 1
+        with st.expander(f"{c['name']}  ·  {c['category']}"):
+            st.write(f"**What it is** — {c['definition']}")
+            st.write(f"**Formula** — {c['formula']}")
+            st.write(f"**How to read it** — {c['interpretation']}")
+            pref = ("Higher is better" if c["higher_better"] is True else
+                    "Lower is better" if c["higher_better"] is False else
+                    "Neither — match it to your profile")
+            st.write(f"**Good** {c['good']}  ·  **Bad** {c['bad']}  ·  **{pref}**")
+            st.write(f"**Common mistake** — {c['mistakes']}")
+            st.write(f"**Limitation** — {c['limitations']}")
+    if q and shown == 0:
+        st.caption("No matching concept. Try another term.")
+
+
 # --- live price ------------------------------------------------------------- #
 @st.fragment(run_every="20s")
 def live_price(ticker):
@@ -146,8 +233,9 @@ def live_price(ticker):
 
 
 # --- views ------------------------------------------------------------------ #
-def show_overview(f):
-    overall, cats, scored = sc.composite_score(f)
+def show_overview(f, profile=None):
+    weights = pf.weights_for_profile(profile) if profile else sc.CATEGORY_WEIGHTS
+    overall, cats, scored = sc.composite_score(f, category_weights=weights)
     v = sa.value_stock(f)
     rr = sc.risk_reward(f, v.blended_intrinsic)
     bull, bear = sc.bull_bear(scored)
@@ -209,6 +297,10 @@ def show_overview(f):
             st.markdown(f"🔴 {label}")
         if not bear:
             st.caption("Nothing scored weak.")
+
+    if profile:
+        st.divider()
+        show_suitability(profile, f, overall, rr)
 
 
 def show_chart(ticker):
@@ -353,8 +445,14 @@ def show_news(ticker):
 def main():
     st.title("📈 Long-term Stock Dashboard")
     if not _HAS_DB:
-        st.warning("Supabase not connected — watchlist is temporary this session.",
-                   icon="⚠️")
+        st.warning("Supabase not connected — watchlist & profile are temporary "
+                   "this session.", icon="⚠️")
+
+    # Mandatory profiling gate: no analysis until the assessment is done.
+    profile = get_profile()
+    if not profile or st.session_state.get("force_onboarding"):
+        show_onboarding()
+        return
 
     with st.sidebar:
         st.header("Watchlist")
@@ -382,6 +480,13 @@ def main():
             st.session_state.ticker = new_t
             st.rerun()
 
+        st.divider()
+        st.caption("**Your profile**")
+        st.caption(pf.describe(profile))
+        if st.button("Retake assessment", use_container_width=True):
+            st.session_state["force_onboarding"] = True
+            st.rerun()
+
     ticker = st.session_state.get("ticker")
     if not ticker:
         st.info("Search a ticker in the sidebar to begin.")
@@ -401,9 +506,9 @@ def main():
             st.write(f.summary)
 
     tabs = st.tabs(["Overview", "Price chart", "Backtest", "All metrics",
-                    "Vs peers", "Analysts", "News"])
+                    "Vs peers", "Analysts", "News", "Handbook"])
     with tabs[0]:
-        show_overview(f)
+        show_overview(f, profile)
     with tabs[1]:
         show_chart(ticker)
     with tabs[2]:
@@ -416,6 +521,8 @@ def main():
         show_analysts(ticker, f)
     with tabs[6]:
         show_news(ticker)
+    with tabs[7]:
+        show_handbook()
 
 
 if __name__ == "__main__":
