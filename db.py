@@ -49,3 +49,14 @@ def load_snapshot(ticker: str) -> dict | None:
     res = get_client().table("snapshots").select("data").eq(
         "ticker", ticker.upper()).execute()
     return res.data[0]["data"] if res.data else None
+
+
+def save_profile(data: dict) -> None:
+    """Persist the investor profile (single-user app -> fixed id 'me')."""
+    get_client().table("profile").upsert(
+        {"id": "me", "data": data}, on_conflict="id").execute()
+
+
+def load_profile() -> dict | None:
+    res = get_client().table("profile").select("data").eq("id", "me").execute()
+    return res.data[0]["data"] if res.data else None
