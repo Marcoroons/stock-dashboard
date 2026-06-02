@@ -4,12 +4,12 @@ app.py - the dashboard you'll actually use.
 Run locally:   streamlit run app.py
 Deploy:        push to GitHub -> Streamlit Community Cloud (see README)
 
-Degrades gracefully: if Supabase secrets aren't set yet, the watchlist falls
-back to in-session memory so you can use the app before finishing DB setup.
+Works even before Supabase is connected (watchlist falls back to session memory).
 """
 
 from __future__ import annotations
 
+import pandas as pd
 import streamlit as st
 
 import stock_analyzer as sa
@@ -17,36 +17,65 @@ import scoring as sc
 import peers as pr
 import news as nw
 
-# --- optional database (works without it) ---------------------------------- #
 try:
     import db
     _HAS_DB = "SUPABASE_URL" in st.secrets
 except Exception:
     _HAS_DB = False
 
-
 st.set_page_config(page_title="Stock Dashboard", page_icon="📈", layout="wide")
 
 
-# --- caching: don't refetch fundamentals on every rerun --------------------- #
-@st.cache_data(ttl=900, show_spinner=False)   # 15 min
-def get_fundamentals(ticker: str):
+# --- small formatters ------------------------------------------------------- #
+def fmt(x):
+    return "n/a" if x is None else f"{x:,.2f}"
+
+
+def fmt_big(x):
+    if x is None:
+        return "n/a"
+    if abs(x) >= 1e9:
+        return f"{x/1e9:,.2f}B"
+    if abs(x) >= 1e6:
+        return f"{x/1e6:,.2f}M"
+    return f"{x:,.0f}"
+
+
+def pctdelta(target, price):
+    if not target or not price:
+        return None
+    return f"{(target - price) / price:+.1%} vs price"
+
+
+# --- caching ---------------------------------------------------------------- #
+@st.cache_data(ttl=900, show_spinner=False)
+def get_fundamentals(ticker):
     return sa.fetch_fundamentals(ticker)
 
 
 @st.cache_data(ttl=900, show_spinner=False)
-def get_peer_comparison(ticker: str):
+def get_peer_comparison(ticker):
     f = get_fundamentals(ticker)
     plist = pr.peers_for(ticker)
     return (pr.compare_to_peers(f, plist), plist) if plist else (None, [])
 
 
 @st.cache_data(ttl=1800, show_spinner=False)
-def get_news(ticker: str):
+def get_news(ticker):
     return nw.recent_news(ticker)
 
 
-# --- watchlist helpers (DB or session fallback) ----------------------------- #
+@st.cache_data(ttl=900, show_spinner=False)
+def get_history(ticker, period):
+    return sa.price_history(ticker, period=period)
+
+
+@st.cache_data(ttl=1800, show_spinner=False)
+def get_analyst(ticker):
+    return sa.analyst_actions(ticker), sa.recommendation_breakdown(ticker)
+
+
+# --- watchlist -------------------------------------------------------------- #
 def wl_list():
     if _HAS_DB:
         return [r["ticker"] for r in db.list_watchlist()]
@@ -70,73 +99,113 @@ def wl_unpin(ticker):
         st.session_state.get("watchlist", []).remove(ticker)
 
 
-# --- live price (delayed on free feeds; refreshes on a timer) --------------- #
+# --- live price (delayed on free feeds) ------------------------------------- #
 @st.fragment(run_every="20s")
-def live_price(ticker: str):
+def live_price(ticker):
     try:
         fast = sa.yf.Ticker(ticker).fast_info
         price = fast.get("last_price") or fast.get("lastPrice")
         prev = fast.get("previous_close") or fast.get("previousClose")
         if price and prev:
-            delta = price - prev
-            st.metric(f"{ticker} (≈15-min delayed)",
-                      f"{price:,.2f}", f"{delta:+.2f} ({delta/prev:+.2%})")
+            d = price - prev
+            st.metric(f"{ticker}  ·  live (≈15-min delayed)",
+                      f"{price:,.2f}", f"{d:+.2f} ({d/prev:+.2%})")
         elif price:
-            st.metric(f"{ticker} (≈15-min delayed)", f"{price:,.2f}")
+            st.metric(f"{ticker}  ·  live (≈15-min delayed)", f"{price:,.2f}")
     except Exception:
         st.caption("Live price unavailable right now.")
 
 
-# --- main views ------------------------------------------------------------- #
-def show_scorecard(f):
+# --- views ------------------------------------------------------------------ #
+def show_overview(f):
     overall, cats, scored = sc.composite_score(f)
     v = sa.value_stock(f)
     rr = sc.risk_reward(f, v.blended_intrinsic)
     bull, bear = sc.bull_bear(scored)
 
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Your score", f"{overall:.0f}/100" if overall else "n/a")
-    c2.metric("Favorability",
-              f"{rr.favorability_pct:.0f}%" if rr.favorability_pct else "n/a",
-              help="Reward vs risk. 50% = even. Reward = upside to target; "
-                   "risk = downside to 52-week low.")
-    c3.metric("Reward : Risk",
-              f"{rr.ratio:.2f} : 1" if rr.ratio else "n/a")
+    h = st.columns(4)
+    h[0].metric("Price", fmt(f.price))
+    h[1].metric("Your score", f"{overall:.0f}/100" if overall else "n/a")
+    h[2].metric("Favorability",
+                f"{rr.favorability_pct:.0f}%" if rr.favorability_pct else "n/a",
+                help="Reward vs risk. 50% = even.")
+    h[3].metric("Reward : Risk", f"{rr.ratio:.2f} : 1" if rr.ratio else "n/a")
+    st.caption(sc.lean_from_score(overall) + "  —  your framework, not advice.")
 
-    st.caption(sc.lean_from_score(overall) + "  —  this is your framework, not advice.")
+    st.markdown("#### Valuation — price vs target vs intrinsic")
+    vc = st.columns(4)
+    vc[0].metric("Current price", fmt(f.price))
+    vc[1].metric("Analyst target", fmt(f.analyst_target_mean),
+                 pctdelta(f.analyst_target_mean, f.price))
+    vc[2].metric("Intrinsic (blended)", fmt(v.blended_intrinsic),
+                 pctdelta(v.blended_intrinsic, f.price))
+    vc[3].metric("DCF / share", fmt(v.dcf_per_share),
+                 pctdelta(v.dcf_per_share, f.price))
+    st.caption("Deltas = upside/downside vs today. Intrinsic = average of "
+               "Graham, P/E-implied and DCF estimates.")
 
-    st.write("**Category scores**")
-    st.dataframe(
-        {"category": list(cats.keys()),
-         "score /100": [round(s, 0) for s in cats.values()],
-         "your weight": [f"{sc.CATEGORY_WEIGHTS[c]:.0%}" for c in cats]},
-        use_container_width=True, hide_index=True,
-    )
+    st.markdown("#### Book value vs market value")
+    total_book = (f.book_value_per_share * f.shares_outstanding
+                  if f.book_value_per_share and f.shares_outstanding else None)
+    bc = st.columns(4)
+    bc[0].metric("Market cap", fmt_big(f.market_cap))
+    bc[1].metric("Book value (equity)", fmt_big(total_book))
+    bc[2].metric("Price / Book", fmt(f.pb_ratio))
+    bc[3].metric("Book value / share", fmt(f.book_value_per_share))
+    st.caption("Market value = what investors pay today; book value = accounting "
+               "net worth. P/B above 1 means it trades above book.")
 
-    b1, b2 = st.columns(2)
-    with b1:
-        st.write("**Bull case** (numbers in favour)")
+    st.markdown("#### Risk & liquidity")
+    rc = st.columns(4)
+    rc[0].metric("Beta", fmt(f.beta),
+                 help="Volatility vs the market. >1 swings more than the index.")
+    rc[1].metric("Current ratio", fmt(f.current_ratio),
+                 help="Short-term assets vs short-term bills. >1 covers the year.")
+    rc[2].metric("Quick ratio", fmt(f.quick_ratio),
+                 help="Current ratio excluding inventory - stricter liquidity test.")
+    rc[3].metric("Debt / Equity", fmt(f.debt_to_equity),
+                 help="Leverage. Higher = more risk in a downturn.")
+
+    st.markdown("#### Bull & bear case (read from the numbers)")
+    bb = st.columns(2)
+    with bb[0]:
+        st.markdown("**Bull**")
         for label, _ in bull:
-            st.write(f"✅ {label}")
+            st.markdown(f"🟢 {label}")
         if not bull:
             st.caption("Nothing scored strong.")
-    with b2:
-        st.write("**Bear case** (numbers against)")
+    with bb[1]:
+        st.markdown("**Bear**")
         for label, _ in bear:
-            st.write(f"⚠️ {label}")
+            st.markdown(f"🔴 {label}")
         if not bear:
             st.caption("Nothing scored weak.")
 
-    st.info(f"Analyst view (third-party data, not our signal): {sc.analyst_view(f)}")
+
+def show_chart(ticker):
+    period = st.radio("Period", ["1mo", "6mo", "1y", "5y"],
+                      horizontal=True, index=2, key="period")
+    hist = get_history(ticker, period)
+    if hist is None or hist.empty:
+        st.caption("No price history available.")
+        return
+    st.line_chart(hist["Close"], height=360)
+    lo, hi = hist["Close"].min(), hist["Close"].max()
+    chg = (hist["Close"].iloc[-1] / hist["Close"].iloc[0] - 1)
+    s = st.columns(3)
+    s[0].metric("Period change", f"{chg:+.1%}")
+    s[1].metric("Period low", fmt(lo))
+    s[2].metric("Period high", fmt(hi))
 
 
 def show_metrics(f):
-    st.write("**All metrics** — hover the ❔ for what each means")
+    st.write("**All metrics** — see what each means")
     rows = []
     for key, cfg in sc.METRIC_CONFIG.items():
         label, desc = sc.GLOSSARY.get(key, (key, ""))
         val = sc._metric_value(f, key)
-        rows.append({"metric": label, "value": "n/a" if val is None else round(val, 3),
+        rows.append({"metric": label,
+                     "value": "n/a" if val is None else round(val, 3),
                      "what it means": desc})
     st.dataframe(rows, use_container_width=True, hide_index=True)
 
@@ -160,6 +229,32 @@ def show_peers(ticker):
     st.dataframe(rows, use_container_width=True, hide_index=True)
 
 
+def show_analysts(ticker, f):
+    actions, breakdown = get_analyst(ticker)
+    st.markdown("#### Analyst consensus")
+    c = st.columns(3)
+    c[0].metric("Consensus", (f.recommendation_key or "n/a").replace("_", " "))
+    c[1].metric("Mean rating", fmt(f.recommendation_mean),
+                help="1 = strong buy, 5 = strong sell")
+    c[2].metric("Coverage", f"{f.num_analysts} analysts" if f.num_analysts else "n/a")
+    if breakdown:
+        st.bar_chart(pd.Series(breakdown), height=220)
+
+    st.markdown("#### Recent rating changes — who said what")
+    if actions:
+        st.dataframe(
+            actions, use_container_width=True, hide_index=True,
+            column_config={
+                "date": "Date", "firm": "Firm", "action": "Action",
+                "from_grade": "From", "to_grade": "To",
+            },
+        )
+    else:
+        st.caption("No recent analyst rating changes reported.")
+    st.caption("Source: aggregated via Yahoo Finance; coverage may be incomplete. "
+               "These are third-party opinions, not this tool's signal.")
+
+
 def show_news(ticker):
     items = get_news(ticker)
     st.caption(f"Headline tilt (reading aid, NOT a signal): {nw.headline_tilt(items)}")
@@ -176,8 +271,8 @@ def show_news(ticker):
 def main():
     st.title("📈 Long-term Stock Dashboard")
     if not _HAS_DB:
-        st.warning("Supabase not connected — watchlist is temporary this session. "
-                   "See README to wire up the database.", icon="⚠️")
+        st.warning("Supabase not connected — watchlist is temporary this session.",
+                   icon="⚠️")
 
     with st.sidebar:
         st.header("Watchlist")
@@ -215,14 +310,19 @@ def main():
         with st.expander("What this company does"):
             st.write(f.summary)
 
-    tabs = st.tabs(["Scorecard", "All metrics", "Vs peers", "News"])
+    tabs = st.tabs(["Overview", "Price chart", "All metrics",
+                    "Vs peers", "Analysts", "News"])
     with tabs[0]:
-        show_scorecard(f)
+        show_overview(f)
     with tabs[1]:
-        show_metrics(f)
+        show_chart(ticker)
     with tabs[2]:
-        show_peers(ticker)
+        show_metrics(f)
     with tabs[3]:
+        show_peers(ticker)
+    with tabs[4]:
+        show_analysts(ticker, f)
+    with tabs[5]:
         show_news(ticker)
 
 
