@@ -205,6 +205,56 @@ def fetch_fundamentals(ticker: str) -> Fundamentals:
 
 
 # --------------------------------------------------------------------------- #
+# Price history + analyst detail (for the dashboard graph & analyst table)
+# --------------------------------------------------------------------------- #
+def price_history(ticker: str, period: str = "1y", interval: str = "1d"):
+    """Return a DataFrame of historical prices (Open/High/Low/Close/Volume)."""
+    try:
+        return yf.Ticker(ticker).history(period=period, interval=interval)
+    except Exception:
+        return None
+
+
+def analyst_actions(ticker: str, limit: int = 15) -> list[dict]:
+    """Recent analyst rating changes WITH the firm name.
+    Returns [{date, firm, action, from_grade, to_grade}] newest first."""
+    try:
+        df = yf.Ticker(ticker).upgrades_downgrades
+    except Exception:
+        return []
+    if df is None or len(df) == 0:
+        return []
+    df = df.reset_index()
+    date_col = "GradeDate" if "GradeDate" in df.columns else (
+        "Date" if "Date" in df.columns else df.columns[0])
+    df = df.sort_values(date_col, ascending=False)
+    rows = []
+    for _, r in df.head(limit).iterrows():
+        rows.append({
+            "date": str(r.get(date_col, ""))[:10],
+            "firm": r.get("Firm", "") or "",
+            "action": (r.get("Action", "") or "").replace("_", " "),
+            "from_grade": r.get("FromGrade", "") or "",
+            "to_grade": r.get("ToGrade", "") or "",
+        })
+    return rows
+
+
+def recommendation_breakdown(ticker: str) -> Optional[dict]:
+    """Current analyst rating distribution: strongBuy/buy/hold/sell/strongSell."""
+    try:
+        df = yf.Ticker(ticker).recommendations
+    except Exception:
+        return None
+    if df is None or len(df) == 0:
+        return None
+    row = df.iloc[0].to_dict()  # most recent period ('0m')
+    keys = ["strongBuy", "buy", "hold", "sell", "strongSell"]
+    out = {k: int(row[k]) for k in keys if k in row and row[k] is not None}
+    return out or None
+
+
+# --------------------------------------------------------------------------- #
 # Valuation models  (all assumptions are explicit and overridable)
 # --------------------------------------------------------------------------- #
 def graham_number(eps: Optional[float], bvps: Optional[float]) -> Optional[float]:
