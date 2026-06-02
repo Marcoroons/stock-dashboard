@@ -16,6 +16,7 @@ import stock_analyzer as sa
 import scoring as sc
 import peers as pr
 import news as nw
+import backtest as bt
 
 try:
     import db
@@ -24,6 +25,28 @@ except Exception:
     _HAS_DB = False
 
 st.set_page_config(page_title="Stock Dashboard", page_icon="📈", layout="wide")
+
+# --- exchange / suffix reference (foreign tickers need a Yahoo suffix) ------ #
+SUFFIXES = [
+    (".JK", "Indonesia (IDX, Jakarta)"), (".T", "Japan (Tokyo)"),
+    (".HK", "Hong Kong"), (".SS", "China (Shanghai)"), (".SZ", "China (Shenzhen)"),
+    (".SI", "Singapore (SGX)"), (".KL", "Malaysia (Bursa)"), (".BK", "Thailand (SET)"),
+    (".KS", "South Korea (KOSPI)"), (".TW", "Taiwan"), (".NS", "India (NSE)"),
+    (".BO", "India (BSE)"), (".AX", "Australia (ASX)"), (".NZ", "New Zealand"),
+    (".L", "UK (London)"), (".DE", "Germany (XETRA)"), (".PA", "France (Paris)"),
+    (".AS", "Netherlands (Amsterdam)"), (".MI", "Italy (Milan)"), (".MC", "Spain (Madrid)"),
+    (".SW", "Switzerland (SIX)"), (".ST", "Sweden (Stockholm)"), (".OL", "Norway (Oslo)"),
+    (".TO", "Canada (Toronto)"), (".SA", "Brazil (B3)"), (".SR", "Saudi Arabia (Tadawul)"),
+    ("(none)", "United States (NYSE / Nasdaq)"),
+]
+_MARKET = {s: c for s, c in SUFFIXES}
+
+
+def market_label(ticker):
+    for suf, country in SUFFIXES:
+        if suf != "(none)" and ticker.upper().endswith(suf):
+            return country
+    return "United States"
 
 
 # --- small formatters ------------------------------------------------------- #
@@ -75,6 +98,12 @@ def get_analyst(ticker):
     return sa.analyst_actions(ticker), sa.recommendation_breakdown(ticker)
 
 
+@st.cache_data(ttl=900, show_spinner=False)
+def run_backtest(ticker, amount, years, mode):
+    return (bt.lump_sum(ticker, amount, years) if mode == "Lump sum"
+            else bt.dca(ticker, amount, years))
+
+
 # --- watchlist -------------------------------------------------------------- #
 def wl_list():
     if _HAS_DB:
@@ -99,7 +128,7 @@ def wl_unpin(ticker):
         st.session_state.get("watchlist", []).remove(ticker)
 
 
-# --- live price (delayed on free feeds) ------------------------------------- #
+# --- live price ------------------------------------------------------------- #
 @st.fragment(run_every="20s")
 def live_price(ticker):
     try:
@@ -198,6 +227,61 @@ def show_chart(ticker):
     s[2].metric("Period high", fmt(hi))
 
 
+def show_backtest(ticker, f):
+    cur = f.currency or ""
+    st.markdown("#### Backtest — what already happened")
+    c = st.columns(3)
+    amount = c[0].number_input(f"Amount ({cur})", min_value=1.0,
+                               value=1000.0, step=100.0, key="bt_amt")
+    years = c[1].slider("Years back", 1, 20, 5, key="bt_yrs")
+    mode = c[2].radio("How", ["Lump sum", "Monthly (DCA)"], key="bt_mode")
+    mode_key = "Lump sum" if mode == "Lump sum" else "DCA"
+
+    try:
+        r = run_backtest(ticker, amount, years, mode_key)
+    except Exception as e:
+        st.error(f"Backtest failed: {e}")
+        return
+    if not r:
+        st.caption("Not enough price history for this period.")
+        return
+
+    m = st.columns(4)
+    m[0].metric("Total invested", fmt_big(r["invested"]))
+    m[1].metric("Worth today", fmt_big(r["end_value"]),
+                f"{r['total_return']:+.1%}" if r["total_return"] is not None else None)
+    m[2].metric("Profit", fmt_big(r["profit"]))
+    m[3].metric("Annualised", f"{r['cagr']:.1%}" if r["cagr"] is not None else "n/a",
+                help="Lump sum: CAGR. DCA: money-weighted return (IRR).")
+    if r.get("value_series") is not None and len(r["value_series"]):
+        st.line_chart(r["value_series"], height=300)
+    st.caption("Uses dividend/split-adjusted prices (≈ total return with dividends "
+               "reinvested). This is the past — it does not predict the future.")
+
+    st.divider()
+    st.markdown("#### Project forward — a what-if, not a forecast")
+    default_rate = 7.0
+    if r["cagr"] is not None and -0.5 < r["cagr"] < 0.5:
+        default_rate = round(r["cagr"] * 100, 1)
+    p = st.columns(3)
+    rate = p[0].number_input("Assumed annual return %", value=float(default_rate),
+                             step=0.5, key="pj_rate") / 100
+    pj_years = p[1].slider("Project years", 1, 30, 10, key="pj_yrs")
+    monthly = p[2].number_input(f"Add monthly ({cur})", min_value=0.0,
+                                value=0.0, step=50.0, key="pj_mo")
+    rows = bt.project(r["end_value"], rate, pj_years, monthly)
+    proj = pd.Series({y: b for y, b in rows})
+    st.line_chart(proj, height=260)
+    final = rows[-1][1]
+    contributed = r["end_value"] + monthly * 12 * pj_years
+    f1, f2 = st.columns(2)
+    f1.metric(f"Projected value in {pj_years}y", fmt_big(final))
+    f2.metric("Of which you put in", fmt_big(contributed))
+    st.caption("⚠️ This simply grows your money at the rate you typed. Markets "
+               "don't deliver steady returns — real years swing up and down, and "
+               "past performance is not a promise. Treat this as a planning sketch.")
+
+
 def show_metrics(f):
     st.write("**All metrics** — see what each means")
     rows = []
@@ -244,15 +328,13 @@ def show_analysts(ticker, f):
     if actions:
         st.dataframe(
             actions, use_container_width=True, hide_index=True,
-            column_config={
-                "date": "Date", "firm": "Firm", "action": "Action",
-                "from_grade": "From", "to_grade": "To",
-            },
+            column_config={"date": "Date", "firm": "Firm", "action": "Action",
+                           "from_grade": "From", "to_grade": "To"},
         )
     else:
         st.caption("No recent analyst rating changes reported.")
     st.caption("Source: aggregated via Yahoo Finance; coverage may be incomplete. "
-               "These are third-party opinions, not this tool's signal.")
+               "Third-party opinions, not this tool's signal.")
 
 
 def show_news(ticker):
@@ -285,6 +367,13 @@ def main():
                 st.rerun()
         st.divider()
         new_t = st.text_input("Search a ticker", placeholder="e.g. AAPL").upper().strip()
+        st.caption("🌐 Non-US stocks need a Yahoo suffix — e.g. **TLKM.JK** "
+                   "(Indonesia), **7203.T** (Japan).")
+        with st.expander("Ticker suffixes by country"):
+            st.dataframe(
+                [{"suffix": s, "market": c} for s, c in SUFFIXES],
+                use_container_width=True, hide_index=True,
+            )
         cta = st.columns(2)
         if cta[0].button("Analyze", use_container_width=True) and new_t:
             st.session_state.ticker = new_t
@@ -306,23 +395,26 @@ def main():
 
     live_price(ticker)
     st.subheader(f"{f.name or ticker}  ·  {f.sector or ''} / {f.industry or ''}")
+    st.caption(f"{market_label(ticker)} · prices in {f.currency or 'local currency'}")
     if f.summary:
         with st.expander("What this company does"):
             st.write(f.summary)
 
-    tabs = st.tabs(["Overview", "Price chart", "All metrics",
+    tabs = st.tabs(["Overview", "Price chart", "Backtest", "All metrics",
                     "Vs peers", "Analysts", "News"])
     with tabs[0]:
         show_overview(f)
     with tabs[1]:
         show_chart(ticker)
     with tabs[2]:
-        show_metrics(f)
+        show_backtest(ticker, f)
     with tabs[3]:
-        show_peers(ticker)
+        show_metrics(f)
     with tabs[4]:
-        show_analysts(ticker, f)
+        show_peers(ticker)
     with tabs[5]:
+        show_analysts(ticker, f)
+    with tabs[6]:
         show_news(ticker)
 
 
