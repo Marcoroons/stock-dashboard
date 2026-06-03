@@ -60,3 +60,18 @@ def save_profile(data: dict) -> None:
 def load_profile() -> dict | None:
     res = get_client().table("profile").select("data").eq("id", "me").execute()
     return res.data[0]["data"] if res.data else None
+
+
+def list_holdings() -> list[dict]:
+    res = get_client().table("holdings").select("*").order("ticker").execute()
+    return res.data or []
+
+
+def add_holding(ticker: str, shares: float, cost_basis: float) -> None:
+    get_client().table("holdings").upsert(
+        {"ticker": ticker.upper(), "shares": shares, "cost_basis": cost_basis},
+        on_conflict="ticker").execute()
+
+
+def remove_holding(ticker: str) -> None:
+    get_client().table("holdings").delete().eq("ticker", ticker.upper()).execute()
