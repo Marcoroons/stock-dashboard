@@ -1,10 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import {
-  TrendingUp, TrendingDown, Activity, Briefcase,
-  ArrowUpRight, ArrowDownRight, Eye, Plus, Dna,
-  BarChart3, Shield, ChevronRight,
-} from 'lucide-react'
+import { TrendingUp, TrendingDown, Activity, Briefcase, ArrowUpRight, ArrowDownRight, Eye, Plus, Dna, ChartBar as BarChart3, Shield, ChevronRight } from 'lucide-react'
 import {
   AreaChart, Area, ResponsiveContainer, Tooltip,
   PieChart, Pie, Cell, CartesianGrid, XAxis, YAxis,

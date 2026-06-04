@@ -1,12 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import {
-  LayoutDashboard, Briefcase, Search, BookOpen,
-  TrendingUp, Settings, LogOut, ChevronRight,
-  Dna, Target, BarChart3, Newspaper, Menu, X,
-  Zap, Users, Shield,
-} from 'lucide-react'
+import { LayoutDashboard, Briefcase, Search, BookOpen, TrendingUp, Settings, LogOut, ChevronRight, Dna, Target, ChartBar as BarChart3, Newspaper, Menu, X, Zap, Users, Shield } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { cn } from '@/lib/utils'
 
