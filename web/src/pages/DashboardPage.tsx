@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { TrendingUp, TrendingDown, Activity, Briefcase, ArrowUpRight, ArrowDownRight, Eye, Plus, Dna, ChartBar as BarChart3, Shield, ChevronRight } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import {
   AreaChart, Area, ResponsiveContainer, Tooltip,
   PieChart, Pie, Cell, CartesianGrid, XAxis, YAxis,
@@ -15,27 +16,8 @@ import {
   MOCK_SECTOR_ALLOCATION, MOCK_WATCHLIST, MOCK_NEWS,
 } from '@/data/mock'
 import { fmtBig, fmtPct, fmt, colorClass } from '@/lib/utils'
-
-const PROFILE_LABELS: Record<string, string> = {
-  panic_seller: 'Panic Seller',
-  cautious: 'Cautious Investor',
-  rational: 'Rational Investor',
-  conviction: 'Conviction Investor',
-}
-
-const STYLE_LABELS: Record<string, string> = {
-  preservation: 'Wealth Preservation',
-  income: 'Income-Focused',
-  balanced: 'Balanced Growth',
-  growth: 'Growth-Focused',
-}
-
-const HORIZON_LABELS: Record<string, string> = {
-  short: 'Short-term',
-  medium: 'Medium-term',
-  long: 'Long-term',
-  very_long: 'Very Long-term',
-}
+import { computeDnaProfile, getRiskLabel, getRiskColor } from '@/lib/dna-engine'
+import { ALL_ARCHETYPES } from '@/lib/archetypes'
 
 const SENTIMENT_STYLES = {
   bullish: { bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.25)', color: '#10b981', label: 'Bullish' },
@@ -45,30 +27,66 @@ const SENTIMENT_STYLES = {
 
 function DnaCard() {
   const { dna } = useAuth()
-  if (!dna) return null
+
+  const profile = useMemo(() => {
+    if (!dna) return null
+    const input = {
+      emotional_profile: (dna as any).emotional_profile ?? 'rational',
+      wealth_style: (dna as any).wealth_style ?? 'balanced',
+      time_horizon: (dna as any).time_horizon ?? 'long',
+      knowledge_level: (dna as any).knowledge_level ?? 'intermediate',
+      time_commitment: (dna as any).time_commitment ?? 'monthly',
+      volatility_tolerance: (dna as any).volatility_tolerance ?? 'moderate',
+      drawdown_tolerance: (dna as any).drawdown_tolerance ?? 20,
+      sector_interests: (dna as any).sector_interests ?? [],
+      risk_score: (dna as any).risk_score ?? 50,
+      answers: (dna as any).answers ?? {},
+    }
+    return computeDnaProfile(input)
+  }, [dna])
+
+  if (!dna || !profile) return null
+
+  const primaryArch = ALL_ARCHETYPES[profile.primaryInvestmentArchetype]
+  const behaviorArch = ALL_ARCHETYPES[profile.primaryBehavioralArchetype]
+  const riskColor = getRiskColor(profile.riskLevel)
+
   return (
-    <Card className="border-[rgba(59,130,246,0.3)] bg-[rgba(59,130,246,0.05)]">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
+    <Card
+      className="border-[rgba(59,130,246,0.25)]"
+      style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.06) 0%, rgba(6,182,212,0.03) 100%)' }}
+    >
+      <div className="flex items-start justify-between gap-4 mb-4">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-3">
             <Dna className="w-4 h-4 text-[#3b82f6]" />
-            <span className="text-xs font-medium text-[#3b82f6] uppercase tracking-wider">Your Investor DNA</span>
+            <span className="text-xs font-medium text-[#3b82f6] uppercase tracking-wider">Investor DNA</span>
           </div>
-          <h3 className="text-lg font-semibold text-[#f1f5f9] mb-1">
-            {PROFILE_LABELS[dna.emotional_profile ?? ''] ?? 'Custom Profile'}
-          </h3>
-          <p className="text-sm text-[#94a3b8]">
-            {STYLE_LABELS[dna.wealth_style ?? ''] ?? dna.wealth_style} · {HORIZON_LABELS[dna.time_horizon ?? ''] ?? dna.time_horizon} horizon
-          </p>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-2xl">{primaryArch.icon}</span>
+            <div>
+              <h3 className="text-base font-bold" style={{ color: primaryArch.color }}>{primaryArch.label}</h3>
+              <p className="text-xs text-[#64748b]">{primaryArch.tagline}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 mt-2">
+            <span className="text-base">{behaviorArch.icon}</span>
+            <span className="text-xs text-[#94a3b8]">{behaviorArch.label}</span>
+            <span className="text-[#334155]">·</span>
+            <span className="text-xs font-medium" style={{ color: riskColor }}>{getRiskLabel(profile.riskLevel)}</span>
+          </div>
         </div>
-        <div className="flex gap-3">
-          <ScoreRing score={dna.risk_score} size={64} label="Risk" />
-        </div>
+        <ScoreRing score={profile.riskScore} size={64} color={riskColor} label="Risk" />
       </div>
-      <div className="flex gap-2 mt-4 flex-wrap">
-        {dna.sector_interests?.slice(0, 4).map(s => (
-          <Badge key={s} variant="info">{s}</Badge>
-        ))}
+      <div className="flex items-center justify-between">
+        <div className="flex gap-1.5 flex-wrap">
+          {profile.personalityTags.slice(0, 3).map(t => (
+            <span key={t} className="text-[10px] px-2 py-0.5 rounded-full bg-[#1e1e3a] text-[#64748b]">{t}</span>
+          ))}
+        </div>
+        <Link to="/dna" className="flex items-center gap-1 text-xs text-[#3b82f6] hover:text-[#60a5fa] transition-colors">
+          Full profile <ChevronRight className="w-3 h-3" />
+        </Link>
       </div>
     </Card>
   )
@@ -160,7 +178,7 @@ export function DashboardPage() {
             Good morning, {profile?.full_name?.split(' ')[0] ?? 'Investor'}
           </h1>
           <p className="text-[#64748b] text-sm mt-0.5">
-            {dna ? `${PROFILE_LABELS[dna.emotional_profile ?? ''] ?? 'Investor'} · ${STYLE_LABELS[dna.wealth_style ?? ''] ?? 'Custom'} style` : 'Complete your Investor DNA to personalize this dashboard'}
+            {dna ? 'Your personalized investment dashboard' : 'Complete your Investor DNA to personalize this dashboard'}
           </p>
         </div>
         <Button variant="secondary" size="sm">

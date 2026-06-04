@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/portfolio', icon: Briefcase, label: 'Portfolio' },
   { href: '/analyze', icon: Search, label: 'Analyze' },
+  { href: '/dna', icon: Dna, label: 'Investor DNA' },
   { href: '/opportunities', icon: TrendingUp, label: 'Opportunities', tier: 'plus' },
   { href: '/news', icon: Newspaper, label: 'News Intel', tier: 'plus' },
   { href: '/goals', icon: Target, label: 'Life Goals' },
@@ -66,16 +67,19 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       {/* DNA badge */}
       {!collapsed && (
         <div className="px-3 py-2">
-          <div className="flex items-center gap-2 bg-[rgba(59,130,246,0.08)] rounded-[10px] p-2.5 border border-[rgba(59,130,246,0.15)]">
+          <Link
+            to="/dna"
+            className="flex items-center gap-2 bg-[rgba(59,130,246,0.08)] rounded-[10px] p-2.5 border border-[rgba(59,130,246,0.15)] hover:bg-[rgba(59,130,246,0.12)] transition-colors"
+          >
             <Dna className="w-3.5 h-3.5 text-[#3b82f6] flex-shrink-0" />
             <div className="min-w-0">
               <p className="text-[10px] text-[#64748b] uppercase tracking-wide">DNA Profile</p>
               <p className="text-xs text-[#f1f5f9] truncate capitalize font-medium">
-                {profile?.subscription_tier === 'free' ? 'Free' : tier} tier
+                View archetypes
               </p>
             </div>
             <BarChart3 className="w-3 h-3 text-[#3b82f6] ml-auto flex-shrink-0" />
-          </div>
+          </Link>
         </div>
       )}
 

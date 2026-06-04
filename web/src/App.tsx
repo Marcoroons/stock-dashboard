@@ -8,6 +8,7 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { PortfolioPage } from '@/pages/PortfolioPage'
 import { AnalyzePage } from '@/pages/AnalyzePage'
+import { DnaProfilePage } from '@/pages/DnaProfilePage'
 import { OpportunitiesPage, GoalsPage, AcademyPage, SettingsPage } from '@/pages/OtherPages'
 import { LoadingSpinner } from '@/components/ui/Skeleton'
 
@@ -35,6 +36,7 @@ function AppRoutes() {
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="portfolio" element={<PortfolioPage />} />
         <Route path="analyze" element={<AnalyzePage />} />
+        <Route path="dna" element={<DnaProfilePage />} />
         <Route path="opportunities" element={<OpportunitiesPage />} />
         <Route path="goals" element={<GoalsPage />} />
         <Route path="academy" element={<AcademyPage />} />

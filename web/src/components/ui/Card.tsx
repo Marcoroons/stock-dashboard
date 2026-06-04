@@ -3,16 +3,18 @@ import { cn } from '@/lib/utils'
 interface CardProps {
   children: React.ReactNode
   className?: string
+  style?: React.CSSProperties
   onClick?: () => void
   hover?: boolean
   glow?: boolean
   padding?: 'none' | 'sm' | 'md' | 'lg'
 }
 
-export function Card({ children, className, onClick, hover = false, glow = false, padding = 'md' }: CardProps) {
+export function Card({ children, className, style, onClick, hover = false, glow = false, padding = 'md' }: CardProps) {
   return (
     <div
       onClick={onClick}
+      style={style}
       className={cn(
         'glass-card',
         padding === 'none' && 'p-0',
