@@ -1,16 +1,12 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Trash2, TrendingUp, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Info, Briefcase } from 'lucide-react'
+import { Plus, Trash2, TrendingUp, TriangleAlert, CircleCheck as CheckCircle, Info, Briefcase } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, RadarChart, Radar, PolarGrid,
   PolarAngleAxis, PolarRadiusAxis,
 } from 'recharts'
-import { Card, MetricCard } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { Badge } from '@/components/ui/Badge'
-import { ProgressBar } from '@/components/ui/Progress'
+import { Card, MetricCard, Button, Input, Badge, ProgressBar, DataTable, PremiumLock } from '@/components/ui'
 import { MOCK_HOLDINGS, MOCK_PORTFOLIO, MOCK_STRESS_TESTS } from '@/data/mock'
 import { fmtBig, fmtPct, fmt, cn } from '@/lib/utils'
 
@@ -70,40 +66,48 @@ export function PortfolioPage() {
           value={`$${fmtBig(MOCK_PORTFOLIO.totalValue)}`}
           delta={`${gainPct >= 0 ? '+' : ''}${fmtPct(gainPct)} all-time`}
         />
-        <MetricCard
-          label="Total Cost"
-          value={`$${fmtBig(MOCK_PORTFOLIO.totalCost)}`}
-        />
+        <MetricCard label="Total Cost" value={`$${fmtBig(MOCK_PORTFOLIO.totalCost)}`} />
         <MetricCard
           label="Total Gain"
           value={`${totalGain >= 0 ? '+' : ''}$${fmtBig(Math.abs(totalGain))}`}
           delta={fmtPct(gainPct)}
         />
-        <MetricCard
-          label="Holdings"
-          value={MOCK_HOLDINGS.length.toString()}
-          subvalue="7 positions"
-        />
+        <MetricCard label="Holdings" value={MOCK_HOLDINGS.length.toString()} subvalue="7 positions" />
       </div>
 
       {/* Add Holding form */}
       {showAddHolding && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass-card p-5"
-        >
-          <h3 className="font-semibold text-[#f1f5f9] mb-4">Add or Update Holding</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Input label="Ticker" placeholder="AAPL" value={newTicker} onChange={e => setNewTicker(e.target.value.toUpperCase())} />
-            <Input label="Shares" placeholder="10" type="number" value={newShares} onChange={e => setNewShares(e.target.value)} />
-            <Input label="Cost Basis / Share" placeholder="150.00" type="number" value={newCost} onChange={e => setNewCost(e.target.value)} />
-            <div className="flex items-end">
-              <Button fullWidth onClick={() => setShowAddHolding(false)}>
-                Save Holding
-              </Button>
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+          <Card>
+            <h3 className="font-semibold text-[#f1f5f9] mb-4">Add or Update Holding</h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Input
+                label="Ticker"
+                placeholder="AAPL"
+                value={newTicker}
+                onChange={e => setNewTicker(e.target.value.toUpperCase())}
+              />
+              <Input
+                label="Shares"
+                placeholder="10"
+                type="number"
+                value={newShares}
+                onChange={e => setNewShares(e.target.value)}
+              />
+              <Input
+                label="Cost Basis / Share"
+                placeholder="150.00"
+                type="number"
+                value={newCost}
+                onChange={e => setNewCost(e.target.value)}
+              />
+              <div className="flex items-end">
+                <Button fullWidth onClick={() => setShowAddHolding(false)}>
+                  Save Holding
+                </Button>
+              </div>
             </div>
-          </div>
+          </Card>
         </motion.div>
       )}
 
@@ -129,55 +133,40 @@ export function PortfolioPage() {
       {/* Holdings tab */}
       {activeTab === 'holdings' && (
         <div className="space-y-4">
-          <div className="glass-card overflow-hidden">
-            <div className="p-5 border-b border-[#1e1e3a]">
-              <h3 className="font-semibold text-[#f1f5f9]">All Holdings</h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-[#1e1e3a]">
-                    {['Ticker', 'Name', 'Shares', 'Price', 'Avg Cost', 'Value', 'Gain/Loss', 'Weight', ''].map(h => (
-                      <th key={h} className="text-left px-4 py-3 text-xs font-medium text-[#64748b] uppercase tracking-wider whitespace-nowrap">
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#1e1e3a]">
-                  {MOCK_HOLDINGS.map(h => {
-                    const value = h.currentPrice * h.shares
-                    const cost = h.costBasis * h.shares
-                    const gain = (value - cost) / cost
-                    return (
-                      <tr key={h.id} className="hover:bg-[#0f0f1a] transition-colors">
-                        <td className="px-4 py-3 font-semibold text-[#3b82f6]">{h.ticker}</td>
-                        <td className="px-4 py-3 text-[#94a3b8] max-w-[180px] truncate">{h.name}</td>
-                        <td className="px-4 py-3 text-[#f1f5f9]">{h.shares}</td>
-                        <td className="px-4 py-3 text-[#f1f5f9]">${fmt(h.currentPrice)}</td>
-                        <td className="px-4 py-3 text-[#94a3b8]">${fmt(h.costBasis)}</td>
-                        <td className="px-4 py-3 font-medium text-[#f1f5f9]">${fmtBig(value)}</td>
-                        <td className={`px-4 py-3 font-medium ${gain >= 0 ? 'text-[#10b981]' : 'text-[#ef4444]'}`}>
-                          {gain >= 0 ? '+' : ''}{(gain * 100).toFixed(1)}%
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <ProgressBar value={h.weight * 100} height={4} />
-                            <span className="text-xs text-[#64748b] w-10">{(h.weight * 100).toFixed(0)}%</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <button className="text-[#64748b] hover:text-[#ef4444] transition-colors cursor-pointer">
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          {/* Holdings table */}
+          <DataTable
+            data={MOCK_HOLDINGS}
+            columns={[
+              {
+                key: 'ticker',
+                label: 'Ticker',
+                width: '80px',
+                render: (v: string) => <span className="font-semibold text-[#3b82f6]">{v}</span>,
+              },
+              { key: 'name', label: 'Name', width: '200px', render: (v: string) => <span className="text-[#94a3b8]">{v}</span> },
+              { key: 'shares', label: 'Shares', width: '80px', render: (v: number) => v.toFixed(0) },
+              { key: 'currentPrice', label: 'Price', width: '100px', render: (v: number) => `$${fmt(v)}` },
+              { key: 'costBasis', label: 'Avg Cost', width: '100px', render: (v: number) => `$${fmt(v)}` },
+              {
+                key: 'weight',
+                label: 'Value',
+                width: '120px',
+                render: (_v: any, row: any) => `$${fmtBig((row.currentPrice * row.shares))}`,
+              },
+              {
+                key: 'change',
+                label: 'Gain/Loss',
+                render: (v: any, row: any) => {
+                  const value = row.currentPrice * row.shares
+                  const cost = row.costBasis * row.shares
+                  const gain = (value - cost) / cost
+                  return <span className={gain >= 0 ? 'text-[#10b981]' : 'text-[#ef4444]'}>{(gain * 100).toFixed(1)}%</span>
+                },
+              },
+            ]}
+            keyField="id"
+            hoverable
+          />
 
           {/* Portfolio Radar */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -192,19 +181,14 @@ export function PortfolioPage() {
                 </RadarChart>
               </ResponsiveContainer>
             </Card>
+
             <Card>
               <h3 className="font-semibold text-[#f1f5f9] mb-4">Weight Distribution</h3>
               <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={MOCK_HOLDINGS} layout="vertical" margin={{ left: 20 }}>
-                  <CartesianGrid horizontal={false} stroke="#1e1e3a" />
+                <BarChart data={MOCK_HOLDINGS} layout="vertical" margin={{ left: 50 }}>
+                  <CartesianGrid stroke="#1e1e3a" horizontal={false} />
                   <XAxis type="number" hide />
-                  <YAxis type="category" dataKey="ticker" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <Tooltip
-                    contentStyle={{ background: '#141425', border: '1px solid #252545', borderRadius: 8 }}
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    formatter={(v: any) => [`${((Number(v) || 0) * 100).toFixed(1)}%`, 'Weight']}
-                    labelStyle={{ color: '#f1f5f9' }}
-                  />
+                  <YAxis type="category" dataKey="ticker" tick={{ fill: '#94a3b8', fontSize: 11 }} />
                   <Bar dataKey="weight" fill="#3b82f6" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -216,7 +200,7 @@ export function PortfolioPage() {
       {/* Portfolio Doctor tab */}
       {activeTab === 'doctor' && (
         <div className="space-y-4">
-          <div className="glass-card p-5">
+          <Card>
             <h3 className="font-semibold text-[#f1f5f9] mb-1 flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-[#3b82f6]" />
               Portfolio Diagnosis
@@ -226,20 +210,20 @@ export function PortfolioPage() {
               {CONCENTRATION_ISSUES.map((issue, i) => (
                 <div
                   key={i}
-                  className="flex items-start gap-3 rounded-[10px] p-3"
+                  className="flex items-start gap-3 rounded-[10px] p-3 border"
                   style={{
                     background: issue.type === 'warning' ? 'rgba(245,158,11,0.08)' : issue.type === 'success' ? 'rgba(16,185,129,0.08)' : 'rgba(59,130,246,0.08)',
-                    border: `1px solid ${issue.type === 'warning' ? 'rgba(245,158,11,0.2)' : issue.type === 'success' ? 'rgba(16,185,129,0.2)' : 'rgba(59,130,246,0.2)'}`,
+                    borderColor: issue.type === 'warning' ? 'rgba(245,158,11,0.2)' : issue.type === 'success' ? 'rgba(16,185,129,0.2)' : 'rgba(59,130,246,0.2)',
                   }}
                 >
-                  {issue.type === 'warning' && <AlertTriangle className="w-4 h-4 text-[#f59e0b] mt-0.5 flex-shrink-0" />}
+                  {issue.type === 'warning' && <TriangleAlert className="w-4 h-4 text-[#f59e0b] mt-0.5 flex-shrink-0" />}
                   {issue.type === 'success' && <CheckCircle className="w-4 h-4 text-[#10b981] mt-0.5 flex-shrink-0" />}
                   {issue.type === 'info' && <Info className="w-4 h-4 text-[#3b82f6] mt-0.5 flex-shrink-0" />}
                   <p className="text-sm text-[#f1f5f9]">{issue.message}</p>
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
@@ -249,7 +233,9 @@ export function PortfolioPage() {
             ].map(item => (
               <Card key={item.label}>
                 <p className="text-xs text-[#64748b] uppercase tracking-wider mb-2">{item.label}</p>
-                <p className="text-2xl font-bold mb-1" style={{ color: item.color }}>{item.score}/100</p>
+                <p className="text-2xl font-bold mb-1" style={{ color: item.color }}>
+                  {item.score}/100
+                </p>
                 <p className="text-sm text-[#94a3b8]">{item.desc}</p>
                 <div className="mt-3">
                   <ProgressBar value={item.score} color={item.color} />
@@ -262,23 +248,13 @@ export function PortfolioPage() {
 
       {/* Stress Test tab */}
       {activeTab === 'stress' && (
-        <div className="glass-card p-6 relative overflow-hidden">
-          {/* Pro lock overlay */}
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center backdrop-blur-sm rounded-[14px]"
-            style={{ background: 'rgba(9,9,15,0.85)' }}>
-            <div className="text-center max-w-sm">
-              <div className="w-12 h-12 rounded-full bg-[rgba(245,158,11,0.15)] flex items-center justify-center mx-auto mb-3">
-                <AlertTriangle className="w-6 h-6 text-[#f59e0b]" />
-              </div>
-              <h3 className="text-lg font-semibold text-[#f1f5f9] mb-2">Pro Feature</h3>
-              <p className="text-sm text-[#64748b] mb-5">Stress testing requires a Pro subscription. See how your portfolio would have performed in historic crashes.</p>
-              <Button>Upgrade to Pro</Button>
-              <p className="text-xs text-[#64748b] mt-3">Have an access code? <button className="text-[#3b82f6] underline cursor-pointer">Enter here</button></p>
-            </div>
-          </div>
-          {/* Blurred content behind */}
-          <h3 className="font-semibold text-[#f1f5f9] mb-4">Stress Test Results</h3>
-          <div className="space-y-3 filter blur-sm">
+        <PremiumLock
+          tier="pro"
+          title="Stress Testing"
+          description="See how your portfolio would have performed in historic market crashes"
+          features={['2008 Financial Crisis', 'Dot-Com Crash', 'COVID Crash', 'Custom Scenarios']}
+        >
+          <div className="space-y-3">
             {MOCK_STRESS_TESTS.map(test => (
               <div key={test.scenario} className="flex items-center justify-between p-3 rounded-[10px] bg-[#0f0f1a]">
                 <div>
@@ -289,7 +265,7 @@ export function PortfolioPage() {
               </div>
             ))}
           </div>
-        </div>
+        </PremiumLock>
       )}
     </div>
   )
