@@ -1,9 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import {
-  Plus, Trash2, TrendingUp, AlertTriangle,
-  CheckCircle, Info, Briefcase,
-} from 'lucide-react'
+import { Plus, Trash2, TrendingUp, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Info, Briefcase } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, RadarChart, Radar, PolarGrid,
