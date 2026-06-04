@@ -1,0 +1,6 @@
+export { InvestorService } from './InvestorService'
+export { PortfolioService } from './PortfolioService'
+export { StockService } from './StockService'
+export { FundService } from './FundService'
+export { NewsService } from './NewsService'
+export { RecommendationService } from './RecommendationService'
