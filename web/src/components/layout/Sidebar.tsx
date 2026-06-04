@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { LayoutDashboard, Briefcase, Search, BookOpen, TrendingUp, Settings, LogOut, ChevronRight, Dna, Target, ChartBar as BarChart3, Newspaper, Menu, X, Zap, Users, Shield, Activity } from 'lucide-react'
+import { LayoutDashboard, Briefcase, Search, BookOpen, TrendingUp, Settings, LogOut, ChevronRight, Dna, Target, ChartBar as BarChart3, Newspaper, Menu, X, Zap, Users, Shield, Activity, ChartPie as PieChart } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { cn } from '@/lib/utils'
 
@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/portfolio', icon: Briefcase, label: 'Portfolio' },
   { href: '/doctor', icon: Activity, label: 'Portfolio Doctor', tier: 'plus' },
+  { href: '/funds', icon: PieChart, label: 'Fund Intel' },
   { href: '/analyze', icon: Search, label: 'Analyze' },
   { href: '/dna', icon: Dna, label: 'Investor DNA' },
   { href: '/opportunities', icon: TrendingUp, label: 'Opportunities', tier: 'plus' },

@@ -11,6 +11,7 @@ import { AnalyzePage } from '@/pages/AnalyzePage'
 import { DnaProfilePage } from '@/pages/DnaProfilePage'
 import { OpportunitiesPage, GoalsPage, AcademyPage, SettingsPage } from '@/pages/OtherPages'
 import { PortfolioDoctorPage } from '@/pages/PortfolioDoctorPage'
+import { FundAnalysisPage } from '@/pages/FundAnalysisPage'
 import { LoadingSpinner } from '@/components/ui/Skeleton'
 
 function AppRoutes() {
@@ -39,6 +40,7 @@ function AppRoutes() {
         <Route path="analyze" element={<AnalyzePage />} />
         <Route path="dna" element={<DnaProfilePage />} />
         <Route path="doctor" element={<PortfolioDoctorPage />} />
+        <Route path="funds" element={<FundAnalysisPage />} />
         <Route path="opportunities" element={<OpportunitiesPage />} />
         <Route path="goals" element={<GoalsPage />} />
         <Route path="academy" element={<AcademyPage />} />
