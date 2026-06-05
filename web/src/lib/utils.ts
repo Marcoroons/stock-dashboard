@@ -1,3 +1,21 @@
+import type { DnaAssessment } from '@/types/database'
+import type { DnaInput } from '@/lib/dna-engine'
+
+export function toDnaInput(dna: DnaAssessment): DnaInput {
+  return {
+    emotional_profile: dna.emotional_profile ?? 'rational',
+    wealth_style: dna.wealth_style ?? 'balanced',
+    time_horizon: dna.time_horizon ?? 'long',
+    knowledge_level: dna.knowledge_level ?? 'intermediate',
+    time_commitment: dna.time_commitment ?? 'monthly',
+    volatility_tolerance: dna.volatility_tolerance ?? 'moderate',
+    drawdown_tolerance: dna.drawdown_tolerance ?? 20,
+    sector_interests: dna.sector_interests ?? [],
+    risk_score: dna.risk_score ?? 50,
+    answers: dna.answers ?? {},
+  }
+}
+
 export function cn(...classes: (string | undefined | false | null)[]) {
   return classes.filter(Boolean).join(' ')
 }

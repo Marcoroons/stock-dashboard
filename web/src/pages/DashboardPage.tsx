@@ -15,7 +15,7 @@ import {
   MOCK_PORTFOLIO, MOCK_HOLDINGS, MOCK_PERFORMANCE_SERIES,
   MOCK_SECTOR_ALLOCATION, MOCK_WATCHLIST, MOCK_NEWS,
 } from '@/data/mock'
-import { fmtBig, fmtPct, fmt, colorClass } from '@/lib/utils'
+import { fmtBig, fmtPct, fmt, colorClass, toDnaInput } from '@/lib/utils'
 import { computeDnaProfile, getRiskLabel, getRiskColor } from '@/lib/dna-engine'
 import { ALL_ARCHETYPES } from '@/lib/archetypes'
 
@@ -30,19 +30,7 @@ function DnaCard() {
 
   const profile = useMemo(() => {
     if (!dna) return null
-    const input = {
-      emotional_profile: (dna as any).emotional_profile ?? 'rational',
-      wealth_style: (dna as any).wealth_style ?? 'balanced',
-      time_horizon: (dna as any).time_horizon ?? 'long',
-      knowledge_level: (dna as any).knowledge_level ?? 'intermediate',
-      time_commitment: (dna as any).time_commitment ?? 'monthly',
-      volatility_tolerance: (dna as any).volatility_tolerance ?? 'moderate',
-      drawdown_tolerance: (dna as any).drawdown_tolerance ?? 20,
-      sector_interests: (dna as any).sector_interests ?? [],
-      risk_score: (dna as any).risk_score ?? 50,
-      answers: (dna as any).answers ?? {},
-    }
-    return computeDnaProfile(input)
+    return computeDnaProfile(toDnaInput(dna))
   }, [dna])
 
   if (!dna || !profile) return null

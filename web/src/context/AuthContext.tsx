@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         Promise.all([
           fetchProfile(session.user.id),
           fetchDna(session.user.id),
-        ]).finally(() => setLoading(false))
+        ]).catch(() => {}).finally(() => setLoading(false))
       } else {
         setLoading(false)
       }
@@ -63,12 +63,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
-        (async () => {
-          await Promise.all([
-            fetchProfile(session.user.id),
-            fetchDna(session.user.id),
-          ])
-        })()
+        Promise.all([
+          fetchProfile(session.user.id),
+          fetchDna(session.user.id),
+        ]).catch(() => {})
       } else {
         setProfile(null)
         setDna(null)

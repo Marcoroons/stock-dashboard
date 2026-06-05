@@ -1,13 +1,9 @@
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import {
-  TrendingUp, Sparkles, ChartPie as PieChart, Compass, ChevronDown,
-  ChevronUp, Info, Shuffle, ChevronRight, BarChart3,
-  Shield, Zap, Target, Star, Check, Building2,
-} from 'lucide-react'
+import { TrendingUp, Sparkles, ChartPie as PieChart, Compass, ChevronDown, ChevronUp, Info, Shuffle, ChevronRight, ChartBar as BarChart3, Shield, Zap, Target, Star, Check, Building2 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { Card, Button, Badge } from '@/components/ui'
-import { cn } from '@/lib/utils'
+import { cn, toDnaInput } from '@/lib/utils'
 import type { DnaInput } from '@/lib/dna-engine'
 import type { DnaAssessment } from '@/types/database'
 import {
@@ -17,20 +13,6 @@ import {
 } from '@/lib/discovery-engine'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function toDnaInput(dna: DnaAssessment): DnaInput {
-  return {
-    emotional_profile: dna.emotional_profile ?? 'rational',
-    wealth_style: dna.wealth_style ?? 'growth',
-    time_horizon: dna.time_horizon ?? 'long',
-    knowledge_level: dna.knowledge_level ?? 'intermediate',
-    time_commitment: dna.time_commitment ?? 'monthly',
-    volatility_tolerance: dna.volatility_tolerance ?? 'moderate',
-    drawdown_tolerance: dna.drawdown_tolerance ?? 20,
-    sector_interests: dna.sector_interests ?? [],
-    risk_score: dna.risk_score ?? 50,
-  }
-}
 
 const RISK_COLORS: Record<string, string> = {
   low: '#10b981', medium: '#f59e0b', high: '#ef4444', very_high: '#dc2626',

@@ -6,7 +6,7 @@ import { ScoreRing, ProgressBar } from '@/components/ui/Progress'
 import { useAuth } from '@/context/AuthContext'
 import { computeDnaProfile, mockCompatibilityScores, getRiskLabel, getRiskColor, getScoreColor, type ComputedDnaProfile } from '@/lib/dna-engine'
 import { ALL_ARCHETYPES, ARCHETYPE_CATEGORIES } from '@/lib/archetypes'
-import { cn } from '@/lib/utils'
+import { cn, toDnaInput } from '@/lib/utils'
 
 const FADE_UP = { hidden: { opacity: 0, y: 16 }, visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.07 } }) }
 
@@ -15,18 +15,7 @@ export function DnaProfilePage() {
 
   const dnaInput = useMemo(() => {
     if (!dna) return null
-    return {
-      emotional_profile: (dna as any).emotional_profile ?? 'rational',
-      wealth_style: (dna as any).wealth_style ?? 'balanced',
-      time_horizon: (dna as any).time_horizon ?? 'long',
-      knowledge_level: (dna as any).knowledge_level ?? 'intermediate',
-      time_commitment: (dna as any).time_commitment ?? 'monthly',
-      volatility_tolerance: (dna as any).volatility_tolerance ?? 'moderate',
-      drawdown_tolerance: (dna as any).drawdown_tolerance ?? 20,
-      sector_interests: (dna as any).sector_interests ?? [],
-      risk_score: (dna as any).risk_score ?? 50,
-      answers: (dna as any).answers ?? {},
-    }
+    return toDnaInput(dna)
   }, [dna])
 
   const profile = useMemo(() => {

@@ -350,12 +350,6 @@ export const MOCK_NEWS = [
   },
 ]
 
-export const MOCK_OPPORTUNITIES = [
-  { ticker: 'META', name: 'Meta Platforms', score: 81, fairValue: 520, currentPrice: 492.80, upside: 0.055, margin: 0.052, sector: 'Technology' },
-  { ticker: 'GOOGL', name: 'Alphabet', score: 74, fairValue: 205, currentPrice: 178.40, upside: 0.149, margin: 0.129, sector: 'Technology' },
-  { ticker: 'BRK.B', name: 'Berkshire Hathaway', score: 72, fairValue: 395, currentPrice: 358.70, upside: 0.101, margin: 0.092, sector: 'Financial' },
-  { ticker: 'UNH', name: 'UnitedHealth Group', score: 70, fairValue: 580, currentPrice: 520.40, upside: 0.115, margin: 0.103, sector: 'Healthcare' },
-]
 
 export const MOCK_STRESS_TESTS = [
   { scenario: '2008 Financial Crisis', projectedDrawdown: -0.412, description: 'Global financial meltdown, credit freeze, housing collapse' },

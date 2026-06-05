@@ -1,13 +1,16 @@
 import { useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router-dom'
 import { Menu, Bell, Search } from 'lucide-react'
 import { Sidebar, MobileSidebar } from './Sidebar'
 import { useAuth } from '@/context/AuthContext'
+import { useAlerts } from '@/context/AlertsContext'
 
 export function AppLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const { profile } = useAuth()
+  const { unreadCount } = useAlerts()
+  const navigate = useNavigate()
 
   return (
     <div className="flex min-h-screen" style={{ background: '#09090f' }}>
@@ -45,8 +48,17 @@ export function AppLayout() {
           </div>
 
           <div className="flex items-center gap-2 ml-auto">
-            <button className="w-9 h-9 rounded-[10px] border border-[#1e1e3a] flex items-center justify-center text-[#64748b] hover:text-[#f1f5f9] hover:bg-[#0f0f1a] transition-colors cursor-pointer">
+            {/* Bell with unread badge */}
+            <button
+              onClick={() => navigate('/alerts')}
+              className="relative w-9 h-9 rounded-[10px] border border-[#1e1e3a] flex items-center justify-center text-[#64748b] hover:text-[#f1f5f9] hover:bg-[#0f0f1a] transition-colors cursor-pointer"
+            >
               <Bell className="w-4 h-4" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-[#ef4444] text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 leading-none">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
             </button>
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#3b82f6] to-[#06b6d4] flex items-center justify-center text-sm font-semibold text-white">
               {(profile?.full_name ?? profile?.email ?? 'U').charAt(0).toUpperCase()}

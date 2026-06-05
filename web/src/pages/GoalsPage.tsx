@@ -1,11 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Target, Plus, X, ChevronDown, ChevronUp, Flame, GraduationCap,
-  Home, Building2, Star, TriangleAlert as AlertTriangle, Check,
-  TrendingUp, TrendingDown, Sliders, Trophy, Calendar, Info,
-  ChevronRight, Wallet, Clock,
-} from 'lucide-react'
+import { Target, Plus, X, ChevronDown, ChevronUp, Flame, GraduationCap, Hop as Home, Building2, Star, TriangleAlert as AlertTriangle, Check, TrendingUp, TrendingDown, FileSliders as Sliders, Trophy, Calendar, Info, ChevronRight, Wallet, Clock } from 'lucide-react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine,

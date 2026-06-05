@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { LayoutDashboard, Briefcase, Search, BookOpen, TrendingUp, Settings, LogOut, ChevronRight, Dna, Target, ChartBar as BarChart3, Newspaper, Menu, X, Zap, Users, Shield, Activity, ChartPie as PieChart } from 'lucide-react'
+import { LayoutDashboard, Briefcase, Search, BookOpen, TrendingUp, Settings, LogOut, ChevronRight, Dna, Target, ChartBar as BarChart3, Newspaper, Menu, X, Zap, Users, Shield, Activity, ChartPie as PieChart, Bell } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
+import { useAlerts } from '@/context/AlertsContext'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
@@ -15,6 +16,7 @@ const NAV_ITEMS = [
   { href: '/opportunities', icon: TrendingUp, label: 'Opportunities', tier: 'plus' },
   { href: '/news', icon: Newspaper, label: 'News Intel', tier: 'plus' },
   { href: '/goals', icon: Target, label: 'Life Goals' },
+  { href: '/alerts', icon: Bell, label: 'Alerts' },
   { href: '/stress-test', icon: Shield, label: 'Stress Test', tier: 'pro' },
   { href: '/insider', icon: Users, label: 'Insider Activity', tier: 'pro' },
   { href: '/academy', icon: BookOpen, label: 'Academy' },
@@ -34,6 +36,7 @@ interface SidebarProps {
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const location = useLocation()
   const { profile, signOut } = useAuth()
+  const { unreadCount } = useAlerts()
   const tier = profile?.subscription_tier ?? 'free'
 
   return (
@@ -99,7 +102,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
               to={item.href}
               title={collapsed ? item.label : undefined}
               className={cn(
-                'flex items-center gap-3 px-2.5 py-2 rounded-[8px] transition-all duration-150 group',
+                'relative flex items-center gap-3 px-2.5 py-2 rounded-[8px] transition-all duration-150 group',
                 active
                   ? 'bg-[rgba(59,130,246,0.15)] text-[#60a5fa]'
                   : 'text-[#64748b] hover:text-[#94a3b8] hover:bg-[#0f0f1a]',
@@ -108,6 +111,14 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
               <item.icon className={cn('w-4 h-4 flex-shrink-0', active && 'text-[#3b82f6]')} />
               {!collapsed && (
                 <span className="text-sm font-medium truncate flex-1">{item.label}</span>
+              )}
+              {!collapsed && item.href === '/alerts' && unreadCount > 0 && (
+                <span className="text-[10px] font-bold bg-[#ef4444] text-white px-1.5 py-0.5 rounded-full min-w-[20px] text-center leading-none flex-shrink-0">
+                  {unreadCount}
+                </span>
+              )}
+              {collapsed && item.href === '/alerts' && unreadCount > 0 && (
+                <span className="absolute top-1 right-1 w-2 h-2 bg-[#ef4444] rounded-full" />
               )}
               {!collapsed && locked && (
                 <span
