@@ -17,6 +17,7 @@ import { PortfolioDoctorPage } from '@/pages/PortfolioDoctorPage'
 import { FundAnalysisPage } from '@/pages/FundAnalysisPage'
 import { NewsPage } from '@/pages/NewsPage'
 import { AlertsPage } from '@/pages/AlertsPage'
+import { StressTestPage } from '@/pages/StressTestPage'
 import { LoadingSpinner } from '@/components/ui/Skeleton'
 
 function AppRoutes() {
@@ -51,6 +52,7 @@ function AppRoutes() {
           <Route path="opportunities" element={<OpportunitiesPage />} />
           <Route path="goals" element={<GoalsPage />} />
           <Route path="alerts" element={<AlertsPage />} />
+          <Route path="stress-test" element={<StressTestPage />} />
           <Route path="academy" element={<AcademyPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
