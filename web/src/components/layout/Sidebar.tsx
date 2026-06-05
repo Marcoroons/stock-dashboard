@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { LayoutDashboard, Briefcase, Search, BookOpen, TrendingUp, Settings, LogOut, ChevronRight, Dna, Target, ChartBar as BarChart3, Newspaper, Menu, X, Zap, Users, Shield, Activity, ChartPie as PieChart, Bell, Sparkles } from 'lucide-react'
+import { LayoutDashboard, Briefcase, Search, BookOpen, TrendingUp, Settings, LogOut, ChevronRight, Dna, Target, ChartBar as BarChart3, Newspaper, Menu, X, Zap, Users, Shield, Activity, ChartPie as PieChart, Bell, Sparkles, ShieldAlert } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useAlerts } from '@/context/AlertsContext'
 import { useSubscription } from '@/context/SubscriptionContext'
@@ -196,6 +196,15 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           </Link>
         )}
 
+        {profile?.is_admin && (
+          <Link
+            to="/admin"
+            className="flex items-center gap-3 px-2.5 py-2 rounded-[8px] text-[#ef4444] hover:text-[#fca5a5] hover:bg-[rgba(239,68,68,0.06)] transition-colors"
+          >
+            <ShieldAlert className="w-4 h-4 flex-shrink-0" />
+            {!collapsed && <span className="text-sm">Admin</span>}
+          </Link>
+        )}
         <Link
           to="/settings"
           className="flex items-center gap-3 px-2.5 py-2 rounded-[8px] text-[#64748b] hover:text-[#94a3b8] hover:bg-[#0f0f1a] transition-colors"

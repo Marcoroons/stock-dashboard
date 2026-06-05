@@ -1,9 +1,18 @@
-import { useState } from 'react'
-import { Outlet, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { Menu, Bell, Search } from 'lucide-react'
 import { Sidebar, MobileSidebar } from './Sidebar'
 import { useAuth } from '@/context/AuthContext'
 import { useAlerts } from '@/context/AlertsContext'
+import { track } from '@/lib/analytics'
+
+function PageTracker() {
+  const location = useLocation()
+  useEffect(() => {
+    track('page_viewed', { path: location.pathname })
+  }, [location.pathname])
+  return null
+}
 
 export function AppLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -14,6 +23,7 @@ export function AppLayout() {
 
   return (
     <div className="flex min-h-screen" style={{ background: '#09090f' }}>
+      <PageTracker />
       {/* Desktop sidebar */}
       <div className="hidden lg:block">
         <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(c => !c)} />

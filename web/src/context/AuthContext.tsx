@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { setAnalyticsUserId } from '@/lib/analytics'
 import type { Profile, DnaAssessment } from '@/types/database'
 
 interface AuthContextValue {
@@ -49,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
+      setAnalyticsUserId(session?.user?.id ?? null)
       if (session?.user) {
         Promise.all([
           fetchProfile(session.user.id),
@@ -62,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
+      setAnalyticsUserId(session?.user?.id ?? null)
       if (session?.user) {
         Promise.all([
           fetchProfile(session.user.id),

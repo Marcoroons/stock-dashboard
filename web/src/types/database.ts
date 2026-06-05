@@ -50,6 +50,7 @@ export interface Profile {
   investor_score: number
   portfolio_health_score: number
   risk_management_score: number
+  is_admin: boolean
   created_at: string
   updated_at: string
 }

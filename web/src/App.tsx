@@ -20,6 +20,7 @@ import { NewsPage } from '@/pages/NewsPage'
 import { AlertsPage } from '@/pages/AlertsPage'
 import { StressTestPage } from '@/pages/StressTestPage'
 import { PricingPage } from '@/pages/PricingPage'
+import { AdminPage } from '@/pages/AdminPage'
 import { LoadingSpinner } from '@/components/ui/Skeleton'
 
 function AppRoutes() {
@@ -57,6 +58,7 @@ function AppRoutes() {
             <Route path="alerts" element={<AlertsPage />} />
             <Route path="stress-test" element={<StressTestPage />} />
             <Route path="pricing" element={<PricingPage />} />
+            <Route path="admin" element={<AdminPage />} />
             <Route path="academy" element={<AcademyPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />

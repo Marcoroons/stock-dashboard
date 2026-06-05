@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useCallback, type ReactNode } from
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { supabase } from '@/lib/supabase'
+import { track } from '@/lib/analytics'
 import { getTierAccess, type SubscriptionTier, type FeatureAccess } from '@/lib/subscription'
 import { UpgradeModal, AccessCodeModal } from '@/components/ui/UpgradeModal'
 
@@ -46,6 +47,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     // Determine required tier from feature if not explicitly passed
     const proFeatures: Array<keyof FeatureAccess> = ['stressTesting', 'insiderActivity', 'advancedAnalytics', 'aiCoach']
     const required = targetTier ?? (feature && proFeatures.includes(feature) ? 'pro' : 'plus')
+    track('feature_gate_hit', { feature: feature ?? 'unknown', required_tier: required })
     setUpgradeState({ open: true, feature, targetTier: required })
   }, [])
 

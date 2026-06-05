@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { ProgressBar } from '@/components/ui/Progress'
 import { useAuth } from '@/context/AuthContext'
 import { supabase } from '@/lib/supabase'
+import { track } from '@/lib/analytics'
 import { cn } from '@/lib/utils'
 
 interface Question {
@@ -225,6 +226,7 @@ export function OnboardingPage() {
       ...profile,
     })
     await refreshDna()
+    track('onboarding_completed', { risk_score: profile.risk_score })
     setDone(true)
     setSubmitting(false)
   }

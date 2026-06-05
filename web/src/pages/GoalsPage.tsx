@@ -7,6 +7,7 @@ import {
 } from 'recharts'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
+import { track } from '@/lib/analytics'
 import { Card, Button, Badge } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import {
@@ -322,6 +323,7 @@ function AddGoalForm({ userId, onAdd, onClose }: AddGoalFormProps) {
     const { data, error } = await db.from('financial_goals').insert([row]).select().single()
     setSaving(false)
     if (!error && data) {
+      track('goal_created', { goal_type: row.goal_type })
       onAdd(data as Goal)
       onClose()
     }
