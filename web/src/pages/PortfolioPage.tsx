@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Trash2, TrendingUp, TriangleAlert, CircleCheck as CheckCircle, Info, Briefcase } from 'lucide-react'
+import { Plus, Trash2, TrendingUp, TriangleAlert, CircleCheck as CheckCircle, Info, Briefcase, RefreshCw } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, RadarChart, Radar, PolarGrid,
@@ -9,6 +9,7 @@ import {
 import { Card, MetricCard, Button, Input, Badge, ProgressBar, DataTable, PremiumLock } from '@/components/ui'
 import { MOCK_HOLDINGS, MOCK_PORTFOLIO, MOCK_STRESS_TESTS } from '@/data/mock'
 import { fmtBig, fmtPct, fmt, cn } from '@/lib/utils'
+import { fetchBulkQuotes, type FinnhubQuote } from '@/lib/market-data'
 
 const RADAR_DATA = [
   { metric: 'Growth', value: 78 },
@@ -33,8 +34,43 @@ export function PortfolioPage() {
   const [newCost, setNewCost] = useState('')
   const [activeTab, setActiveTab] = useState<'holdings' | 'doctor' | 'stress'>('holdings')
 
-  const totalGain = MOCK_PORTFOLIO.totalValue - MOCK_PORTFOLIO.totalCost
-  const gainPct = totalGain / MOCK_PORTFOLIO.totalCost
+  // Live quotes state
+  const [liveQuotes, setLiveQuotes] = useState<Record<string, FinnhubQuote> | null>(null)
+  const [quotesLoading, setQuotesLoading] = useState(false)
+  const [quotesUpdatedAt, setQuotesUpdatedAt] = useState<Date | null>(null)
+
+  const tickers = MOCK_HOLDINGS.map(h => h.ticker)
+
+  const refreshQuotes = useCallback(async () => {
+    setQuotesLoading(true)
+    try {
+      const quotes = await fetchBulkQuotes(tickers)
+      setLiveQuotes(quotes)
+      setQuotesUpdatedAt(new Date())
+    } catch {
+      // silently fall back to mock prices
+    } finally {
+      setQuotesLoading(false)
+    }
+  }, [tickers.join(',')])
+
+  useEffect(() => { refreshQuotes() }, [refreshQuotes])
+
+  // Merge live prices into holdings
+  const holdings = MOCK_HOLDINGS.map(h => {
+    const q = liveQuotes?.[h.ticker]
+    const currentPrice = (q?.c && q.c > 0) ? q.c : h.currentPrice
+    const dayChange = q?.dp ?? null
+    return { ...h, currentPrice, dayChange }
+  })
+
+  // Recalculate totals from live prices when available
+  const totalValue = liveQuotes
+    ? holdings.reduce((sum, h) => sum + h.currentPrice * h.shares, 0)
+    : MOCK_PORTFOLIO.totalValue
+  const totalCost = MOCK_PORTFOLIO.totalCost
+  const totalGain = totalValue - totalCost
+  const gainPct = totalGain / totalCost
 
   const TABS = [
     { key: 'holdings', label: 'Holdings' },
@@ -53,26 +89,45 @@ export function PortfolioPage() {
           </h1>
           <p className="text-[#64748b] text-sm mt-0.5">Manage and analyze your holdings</p>
         </div>
-        <Button onClick={() => setShowAddHolding(s => !s)} size="sm">
-          <Plus className="w-3.5 h-3.5" />
-          Add Holding
-        </Button>
+        <div className="flex items-center gap-2">
+          {liveQuotes && (
+            <div className="flex items-center gap-1.5 text-xs text-[#475569]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
+              <span className="text-[#10b981] font-medium">Live</span>
+              {quotesUpdatedAt && (
+                <span className="hidden md:inline">· {quotesUpdatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+              )}
+            </div>
+          )}
+          <button
+            onClick={refreshQuotes}
+            disabled={quotesLoading}
+            className="p-1.5 rounded-[7px] text-[#475569] hover:text-[#94a3b8] hover:bg-[#0f0f1a] transition-colors disabled:opacity-40 cursor-pointer"
+            title="Refresh live prices"
+          >
+            <RefreshCw className={cn('w-3.5 h-3.5', quotesLoading && 'animate-spin')} />
+          </button>
+          <Button onClick={() => setShowAddHolding(s => !s)} size="sm">
+            <Plus className="w-3.5 h-3.5" />
+            Add Holding
+          </Button>
+        </div>
       </div>
 
       {/* Summary metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <MetricCard
           label="Total Value"
-          value={`$${fmtBig(MOCK_PORTFOLIO.totalValue)}`}
+          value={`$${fmtBig(totalValue)}`}
           delta={`${gainPct >= 0 ? '+' : ''}${fmtPct(gainPct)} all-time`}
         />
-        <MetricCard label="Total Cost" value={`$${fmtBig(MOCK_PORTFOLIO.totalCost)}`} />
+        <MetricCard label="Total Cost" value={`$${fmtBig(totalCost)}`} />
         <MetricCard
           label="Total Gain"
           value={`${totalGain >= 0 ? '+' : ''}$${fmtBig(Math.abs(totalGain))}`}
           delta={fmtPct(gainPct)}
         />
-        <MetricCard label="Holdings" value={MOCK_HOLDINGS.length.toString()} subvalue="7 positions" />
+        <MetricCard label="Holdings" value={holdings.length.toString()} subvalue="7 positions" />
       </div>
 
       {/* Add Holding form */}
@@ -135,7 +190,7 @@ export function PortfolioPage() {
         <div className="space-y-4">
           {/* Holdings table */}
           <DataTable
-            data={MOCK_HOLDINGS}
+            data={holdings}
             columns={[
               {
                 key: 'ticker',
@@ -145,18 +200,32 @@ export function PortfolioPage() {
               },
               { key: 'name', label: 'Name', width: '200px', render: (v: string) => <span className="text-[#94a3b8]">{v}</span> },
               { key: 'shares', label: 'Shares', width: '80px', render: (v: number) => v.toFixed(0) },
-              { key: 'currentPrice', label: 'Price', width: '100px', render: (v: number) => `$${fmt(v)}` },
+              {
+                key: 'currentPrice',
+                label: 'Price',
+                width: '120px',
+                render: (v: number, row: any) => (
+                  <div>
+                    <span className="text-[#f1f5f9]">${fmt(v)}</span>
+                    {row.dayChange != null && (
+                      <span className={cn('ml-1.5 text-[10px] font-medium', row.dayChange >= 0 ? 'text-[#10b981]' : 'text-[#ef4444]')}>
+                        {row.dayChange >= 0 ? '+' : ''}{row.dayChange.toFixed(1)}%
+                      </span>
+                    )}
+                  </div>
+                ),
+              },
               { key: 'costBasis', label: 'Avg Cost', width: '100px', render: (v: number) => `$${fmt(v)}` },
               {
                 key: 'weight',
                 label: 'Value',
                 width: '120px',
-                render: (_v: any, row: any) => `$${fmtBig((row.currentPrice * row.shares))}`,
+                render: (_v: any, row: any) => `$${fmtBig(row.currentPrice * row.shares)}`,
               },
               {
                 key: 'change',
                 label: 'Gain/Loss',
-                render: (v: any, row: any) => {
+                render: (_v: any, row: any) => {
                   const value = row.currentPrice * row.shares
                   const cost = row.costBasis * row.shares
                   const gain = (value - cost) / cost

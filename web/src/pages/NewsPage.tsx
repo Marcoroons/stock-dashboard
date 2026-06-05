@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Newspaper, TrendingUp, TrendingDown, Minus, Clock, Zap, ChevronDown, ChevronUp, ListFilter as Filter, TriangleAlert as AlertTriangle, ChartBar as BarChart2, Globe, RefreshCw } from 'lucide-react'
+import { Newspaper, TrendingUp, TrendingDown, Minus, Clock, Zap, ChevronDown, ChevronUp, ListFilter as Filter, TriangleAlert as AlertTriangle, ChartBar as BarChart2, Globe, RefreshCw, ExternalLink, Radio } from 'lucide-react'
 import { Card, Badge } from '@/components/ui'
 import { ProgressBar } from '@/components/ui/Progress'
 import { MOCK_NEWS, MOCK_HOLDINGS } from '@/data/mock'
 import { cn } from '@/lib/utils'
+import { fetchMarketNews, type FinnhubNewsArticle } from '@/lib/market-data'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -308,6 +309,22 @@ export function NewsPage() {
   const [sortMode, setSortMode] = useState<SortMode>('importance')
   const [portfolioOnly, setPortfolioOnly] = useState(false)
 
+  // Live news state
+  const [liveNews, setLiveNews] = useState<FinnhubNewsArticle[]>([])
+  const [liveLoading, setLiveLoading] = useState(false)
+  const [liveUpdatedAt, setLiveUpdatedAt] = useState<Date | null>(null)
+
+  useEffect(() => {
+    setLiveLoading(true)
+    fetchMarketNews('general')
+      .then(articles => {
+        setLiveNews(articles.slice(0, 12))
+        setLiveUpdatedAt(new Date())
+      })
+      .catch(() => {})
+      .finally(() => setLiveLoading(false))
+  }, [])
+
   const allTickers = useMemo(() => {
     const tickers = ['all', ...new Set(MOCK_NEWS.map(n => n.ticker))]
     return tickers
@@ -353,6 +370,12 @@ export function NewsPage() {
           <p className="text-[#64748b] text-sm mt-0.5">Every article analyzed — sentiment, importance, confidence, and what it means for your portfolio</p>
         </div>
         <div className="flex items-center gap-2">
+          {liveNews.length > 0 && (
+            <span className="flex items-center gap-1 text-[10px] font-bold uppercase text-[#10b981]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
+              Live
+            </span>
+          )}
           <span className="text-xs text-[#475569] flex items-center gap-1">
             <RefreshCw className="w-3 h-3" />
             Updated just now
@@ -360,6 +383,64 @@ export function NewsPage() {
           <Badge variant="info" size="sm">{MOCK_NEWS.length} articles</Badge>
         </div>
       </div>
+
+      {/* ── Live Market News ── */}
+      {(liveLoading || liveNews.length > 0) && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <Radio className="w-3.5 h-3.5 text-[#ef4444]" />
+            <h2 className="text-sm font-semibold text-[#f1f5f9]">Live Market News</h2>
+            {liveUpdatedAt && (
+              <span className="text-[10px] text-[#475569]">
+                · {liveUpdatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            )}
+          </div>
+          {liveLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="rounded-[12px] border border-[#1e1e3a] bg-[#0a0a14] p-4 animate-pulse">
+                  <div className="h-3 bg-[#1e1e3a] rounded mb-2 w-3/4" />
+                  <div className="h-3 bg-[#1e1e3a] rounded w-1/2" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {liveNews.map(article => (
+                <a
+                  key={article.id}
+                  href={article.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group rounded-[12px] border border-[#1e1e3a] bg-[#0a0a14] p-4 hover:border-[#2a2a4a] hover:bg-[#0f0f1a] transition-all flex flex-col gap-2"
+                >
+                  {article.image && (
+                    <img
+                      src={article.image}
+                      alt=""
+                      className="w-full h-28 object-cover rounded-[8px] mb-1"
+                      onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                    />
+                  )}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] text-[#475569] font-medium truncate">{article.source}</span>
+                    <span className="text-[10px] text-[#334155] flex-shrink-0">
+                      {new Date(article.datetime * 1000).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                    </span>
+                  </div>
+                  <p className="text-xs font-semibold text-[#e2e8f0] leading-snug line-clamp-3 group-hover:text-white transition-colors">
+                    {article.headline}
+                  </p>
+                  <div className="flex items-center gap-1 mt-auto text-[#3b82f6] text-[10px] font-medium">
+                    Read more <ExternalLink className="w-2.5 h-2.5" />
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Sentiment overview ── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
