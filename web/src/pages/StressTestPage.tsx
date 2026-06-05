@@ -6,8 +6,10 @@ import {
   ResponsiveContainer, BarChart, Bar, Cell, ReferenceLine,
 } from 'recharts'
 import { Card, Button, Badge } from '@/components/ui'
+import { FeatureGate } from '@/components/ui/UpgradeModal'
 import { cn } from '@/lib/utils'
 import { MOCK_HOLDINGS, MOCK_PORTFOLIO } from '@/data/mock'
+import { useSubscription } from '@/context/SubscriptionContext'
 import {
   runStressTest, getSeverityLevel, SEVERITY_META, CATEGORY_META,
   type ScenarioResult, type ScenarioCategory, type HoldingImpact,
@@ -511,9 +513,20 @@ function SummaryBanner({ results }: { results: ScenarioResult[] }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export function StressTestPage() {
+  const { hasAccess, openUpgrade } = useSubscription()
   const [categoryFilter, setCategoryFilter] = useState<'all' | ScenarioCategory>('all')
   const [selectedId, setSelectedId] = useState<string>('crisis-2008')
   const [showComparison, setShowComparison] = useState(false)
+
+  if (!hasAccess('stressTesting')) {
+    return (
+      <FeatureGate
+        feature="stressTesting"
+        hasAccess={false}
+        onUpgrade={openUpgrade}
+      />
+    )
+  }
 
   const results = useMemo(() =>
     runStressTest(STRESS_HOLDINGS, MOCK_PORTFOLIO),

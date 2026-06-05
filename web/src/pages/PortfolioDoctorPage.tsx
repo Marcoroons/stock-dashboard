@@ -6,8 +6,10 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell,
 } from 'recharts'
 import { Card, MetricCard, Badge } from '@/components/ui'
+import { FeatureGate } from '@/components/ui/UpgradeModal'
 import { ProgressBar, ScoreRing } from '@/components/ui/Progress'
 import { MOCK_HOLDINGS } from '@/data/mock'
+import { useSubscription } from '@/context/SubscriptionContext'
 import { analyzePortfolio, type Holding, type RiskDimension, type Prescription } from '@/lib/portfolio-doctor'
 import { cn } from '@/lib/utils'
 
@@ -180,8 +182,19 @@ const CHART_TOOLTIP_STYLE = {
 }
 
 export function PortfolioDoctorPage() {
+  const { hasAccess, openUpgrade } = useSubscription()
   const holdings = useMemo(() => MOCK_HOLDINGS.map(mapToHolding), [])
   const report = useMemo(() => analyzePortfolio(holdings), [holdings])
+
+  if (!hasAccess('portfolioDoctor')) {
+    return (
+      <FeatureGate
+        feature="portfolioDoctor"
+        hasAccess={false}
+        onUpgrade={openUpgrade}
+      />
+    )
+  }
 
   const gradeColor = GRADE_COLORS[report.grade] ?? '#64748b'
   const dims = Object.values(report.dimensions)

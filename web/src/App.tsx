@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from '@/context/AuthContext'
 import { AlertsProvider } from '@/context/AlertsContext'
 import { NotificationProvider } from '@/components/ui/Toast'
 import { ModalProvider } from '@/components/ui/Modal'
+import { SubscriptionProvider } from '@/context/SubscriptionContext'
 import { AuthPage } from '@/pages/AuthPage'
 import { OnboardingPage } from '@/pages/OnboardingPage'
 import { AppLayout } from '@/components/layout/AppLayout'
@@ -18,6 +19,7 @@ import { FundAnalysisPage } from '@/pages/FundAnalysisPage'
 import { NewsPage } from '@/pages/NewsPage'
 import { AlertsPage } from '@/pages/AlertsPage'
 import { StressTestPage } from '@/pages/StressTestPage'
+import { PricingPage } from '@/pages/PricingPage'
 import { LoadingSpinner } from '@/components/ui/Skeleton'
 
 function AppRoutes() {
@@ -39,25 +41,28 @@ function AppRoutes() {
 
   return (
     <AlertsProvider>
-      <Routes>
-        <Route path="/" element={<AppLayout />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="portfolio" element={<PortfolioPage />} />
-          <Route path="analyze" element={<AnalyzePage />} />
-          <Route path="dna" element={<DnaProfilePage />} />
-          <Route path="doctor" element={<PortfolioDoctorPage />} />
-          <Route path="funds" element={<FundAnalysisPage />} />
-          <Route path="news" element={<NewsPage />} />
-          <Route path="opportunities" element={<OpportunitiesPage />} />
-          <Route path="goals" element={<GoalsPage />} />
-          <Route path="alerts" element={<AlertsPage />} />
-          <Route path="stress-test" element={<StressTestPage />} />
-          <Route path="academy" element={<AcademyPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Route>
-      </Routes>
+      <SubscriptionProvider>
+        <Routes>
+          <Route path="/" element={<AppLayout />}>
+            <Route index element={<Navigate to="/dashboard" replace />} />
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="portfolio" element={<PortfolioPage />} />
+            <Route path="analyze" element={<AnalyzePage />} />
+            <Route path="dna" element={<DnaProfilePage />} />
+            <Route path="doctor" element={<PortfolioDoctorPage />} />
+            <Route path="funds" element={<FundAnalysisPage />} />
+            <Route path="news" element={<NewsPage />} />
+            <Route path="opportunities" element={<OpportunitiesPage />} />
+            <Route path="goals" element={<GoalsPage />} />
+            <Route path="alerts" element={<AlertsPage />} />
+            <Route path="stress-test" element={<StressTestPage />} />
+            <Route path="pricing" element={<PricingPage />} />
+            <Route path="academy" element={<AcademyPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Route>
+        </Routes>
+      </SubscriptionProvider>
     </AlertsProvider>
   )
 }

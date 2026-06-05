@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Bell, BellOff, ChevronDown, ChevronUp, RefreshCw, CheckCheck, X, TrendingUp, Newspaper, Target, Briefcase, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Info, Sparkles } from 'lucide-react'
 import { useAlerts } from '@/context/AlertsContext'
 import { Card, Button, Badge } from '@/components/ui'
+import { FeatureGate } from '@/components/ui/UpgradeModal'
 import { LoadingSpinner } from '@/components/ui/Skeleton'
 import { cn } from '@/lib/utils'
+import { useSubscription } from '@/context/SubscriptionContext'
 import type { AlertType } from '@/lib/alert-engine'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -244,9 +246,20 @@ function TabButton({ label, count, active, onClick }: {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export function AlertsPage() {
+  const { hasAccess, openUpgrade } = useSubscription()
   const { alerts, unreadCount, loading, markRead, markAllRead, dismiss, refresh } = useAlerts()
   const [tab, setTab] = useState<TabFilter>('all')
   const [refreshing, setRefreshing] = useState(false)
+
+  if (!hasAccess('stressTesting')) {
+    return (
+      <FeatureGate
+        feature="stressTesting"
+        hasAccess={false}
+        onUpgrade={openUpgrade}
+      />
+    )
+  }
 
   const filtered = tab === 'all' ? alerts : alerts.filter(a => a.type === tab)
 
