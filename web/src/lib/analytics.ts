@@ -25,5 +25,5 @@ export function track(eventName: string, properties: Record<string, unknown> = {
     properties: properties as unknown as Json,
     session_id: getSessionId(),
   }
-  void supabase.from('analytics_events').insert(payload)
+  void supabase.from('analytics_events').insert([payload])
 }
