@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import type { Json } from '@/types/database'
 
 let _userId: string | null = null
 let _sessionId: string | null = null
@@ -18,9 +19,11 @@ export function setAnalyticsUserId(userId: string | null) {
 export function track(eventName: string, properties: Record<string, unknown> = {}) {
   if (!_userId) return
   const userId = _userId
-  Promise.resolve(
-    supabase
-      .from('analytics_events')
-      .insert({ user_id: userId, event_name: eventName, properties, session_id: getSessionId() })
-  ).catch(() => {})
+  const payload = {
+    user_id: userId,
+    event_name: eventName,
+    properties: properties as unknown as Json,
+    session_id: getSessionId(),
+  }
+  void supabase.from('analytics_events').insert(payload)
 }
