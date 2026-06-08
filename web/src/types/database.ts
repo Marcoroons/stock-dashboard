@@ -85,7 +85,7 @@ export type RiskTolerance = 'very_conservative' | 'conservative' | 'moderate' | 
 export interface DnaAssessment {
   id: string
   user_id: string
-  answers: Record<string, string | number>
+  answers: Json
   emotional_profile: EmotionalProfile | null
   wealth_style: WealthStyle | null
   time_horizon: TimeHorizon | null
@@ -161,7 +161,7 @@ export interface AnalyticsEvent {
   id: string
   user_id: string | null
   event_name: string
-  properties: Record<string, unknown>
+  properties: Json
   session_id: string | null
   created_at: string
 }
