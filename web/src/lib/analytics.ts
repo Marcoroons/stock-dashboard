@@ -18,9 +18,9 @@ export function setAnalyticsUserId(userId: string | null) {
 export function track(eventName: string, properties: Record<string, unknown> = {}) {
   if (!_userId) return
   const userId = _userId
-  supabase
-    .from('analytics_events')
-    .insert({ user_id: userId, event_name: eventName, properties, session_id: getSessionId() })
-    .then(() => {})
-    .catch(() => {})
+  Promise.resolve(
+    supabase
+      .from('analytics_events')
+      .insert({ user_id: userId, event_name: eventName, properties, session_id: getSessionId() })
+  ).catch(() => {})
 }

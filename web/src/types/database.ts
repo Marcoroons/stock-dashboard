@@ -33,6 +33,26 @@ export interface Database {
         Insert: Partial<WatchlistItem>
         Update: Partial<WatchlistItem>
       }
+      financial_goals: {
+        Row: FinancialGoalRow
+        Insert: Partial<FinancialGoalRow>
+        Update: Partial<FinancialGoalRow>
+      }
+      analytics_events: {
+        Row: AnalyticsEvent
+        Insert: Omit<AnalyticsEvent, 'id' | 'created_at'>
+        Update: Partial<AnalyticsEvent>
+      }
+      subscriptions: {
+        Row: SubscriptionRow
+        Insert: Partial<SubscriptionRow>
+        Update: Partial<SubscriptionRow>
+      }
+      access_codes: {
+        Row: AccessCode
+        Insert: Omit<AccessCode, 'id' | 'times_used' | 'created_at'>
+        Update: Partial<AccessCode>
+      }
     }
   }
 }
@@ -121,6 +141,55 @@ export interface WatchlistItem {
   name: string | null
   note: string | null
   added_at: string
+}
+
+export interface FinancialGoalRow {
+  id: string
+  user_id: string
+  type: 'retirement' | 'house' | 'education' | 'fire' | 'business' | 'custom'
+  label: string
+  target_amount: number
+  current_amount: number
+  monthly_contribution: number
+  target_date: string
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface AnalyticsEvent {
+  id: string
+  user_id: string | null
+  event_name: string
+  properties: Record<string, unknown>
+  session_id: string | null
+  created_at: string
+}
+
+export interface SubscriptionRow {
+  id: string
+  user_id: string
+  stripe_customer_id: string | null
+  stripe_subscription_id: string | null
+  status: string
+  tier: string
+  current_period_start: string | null
+  current_period_end: string | null
+  cancel_at_period_end: boolean
+  canceled_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface AccessCode {
+  id: string
+  code: string
+  tier: string
+  max_uses: number | null
+  times_used: number
+  expires_at: string | null
+  is_active: boolean
+  created_at: string
 }
 
 export type ExperienceMode = 'beginner' | 'explorer' | 'builder' | 'analyst'

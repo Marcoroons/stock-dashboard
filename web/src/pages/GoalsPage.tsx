@@ -18,8 +18,6 @@ import {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const db = supabase as any
-
 const GOAL_ICONS: Record<GoalType, React.ComponentType<any>> = {
   retirement: Home,
   house: Home,
@@ -320,10 +318,10 @@ function AddGoalForm({ userId, onAdd, onClose }: AddGoalFormProps) {
       monthly_contribution: parseFloat(monthlyContrib) || 0,
       target_date: targetDate,
     }
-    const { data, error } = await db.from('financial_goals').insert([row]).select().single()
+    const { data, error } = await supabase.from('financial_goals').insert([row]).select().single()
     setSaving(false)
     if (!error && data) {
-      track('goal_created', { goal_type: row.goal_type })
+      track('goal_created', { goal_type: row.type })
       onAdd(data as Goal)
       onClose()
     }
@@ -948,8 +946,8 @@ export function GoalsPage() {
 
   const loadGoals = useCallback(async () => {
     if (!user) return
-    const { data } = await db.from('financial_goals').select('*').eq('user_id', user.id).order('created_at', { ascending: true })
-    setGoals(data ?? [])
+    const { data } = await supabase.from('financial_goals').select('*').eq('user_id', user.id).order('created_at', { ascending: true })
+    setGoals((data as Goal[]) ?? [])
     setLoading(false)
   }, [user])
 
@@ -958,7 +956,7 @@ export function GoalsPage() {
   const handleAdd = (g: Goal) => setGoals(prev => [...prev, g])
   const handleDelete = async (id: string) => {
     setGoals(prev => prev.filter(g => g.id !== id))
-    await db.from('financial_goals').delete().eq('id', id)
+    await supabase.from('financial_goals').delete().eq('id', id)
   }
 
   if (!user) return null
