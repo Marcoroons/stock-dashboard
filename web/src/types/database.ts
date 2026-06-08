@@ -7,53 +7,65 @@ export interface Database {
         Row: Profile
         Insert: Partial<Profile>
         Update: Partial<Profile>
+        Relationships: []
       }
       dna_assessments: {
         Row: DnaAssessment
         Insert: Partial<DnaAssessment>
         Update: Partial<DnaAssessment>
+        Relationships: []
       }
       portfolios: {
         Row: Portfolio
         Insert: Partial<Portfolio>
         Update: Partial<Portfolio>
+        Relationships: []
       }
       holdings: {
         Row: Holding
         Insert: Partial<Holding>
         Update: Partial<Holding>
+        Relationships: []
       }
       watchlists: {
         Row: Watchlist
         Insert: Partial<Watchlist>
         Update: Partial<Watchlist>
+        Relationships: []
       }
       watchlist_items: {
         Row: WatchlistItem
         Insert: Partial<WatchlistItem>
         Update: Partial<WatchlistItem>
+        Relationships: []
       }
       financial_goals: {
         Row: FinancialGoalRow
         Insert: Partial<FinancialGoalRow>
         Update: Partial<FinancialGoalRow>
+        Relationships: []
       }
       analytics_events: {
         Row: AnalyticsEvent
         Insert: Omit<AnalyticsEvent, 'id' | 'created_at'>
         Update: Partial<AnalyticsEvent>
+        Relationships: []
       }
       subscriptions: {
         Row: SubscriptionRow
         Insert: Partial<SubscriptionRow>
         Update: Partial<SubscriptionRow>
+        Relationships: []
       }
       access_codes: {
         Row: AccessCode
         Insert: Omit<AccessCode, 'id' | 'times_used' | 'created_at'>
         Update: Partial<AccessCode>
+        Relationships: []
       }
     }
+    Views: Record<string, never>
+    Functions: Record<string, never>
   }
 }
 
