@@ -230,13 +230,4 @@ export function getTierAccess(tier: SubscriptionTier): FeatureAccess {
     advancedAnalytics: tier === 'pro',
     aiCoach: tier === 'pro',
   }
-    
-type TestAnalytics = Database['public']['Tables']['analytics_events']['Insert']
-
-const __TEST_ANALYTICS__: TestAnalytics = {
-  user_id: '123',
-  event_name: 'test',
-  properties: {},
-  session_id: 'abc',
-} 
 }
