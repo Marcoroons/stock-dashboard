@@ -1,3 +1,4 @@
+// TEST_DEPLOY_12345
 import { supabase } from '@/lib/supabase'
 import type { Json } from '@/types/database'
 
