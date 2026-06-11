@@ -70,7 +70,15 @@ export interface Database {
     CompositeTypes: Record<string, never>
   }
 }
+type AnalyticsInsert =
+  Database['public']['Tables']['analytics_events']['Insert']
 
+const analyticsInsertTest: AnalyticsInsert = {
+  user_id: '123',
+  event_name: 'test',
+  properties: {},
+  session_id: 'abc',
+}
 export interface Profile {
   id: string
   email: string | null
