@@ -12,7 +12,7 @@ export function toDnaInput(dna: DnaAssessment): DnaInput {
     drawdown_tolerance: dna.drawdown_tolerance ?? 20,
     sector_interests: dna.sector_interests ?? [],
     risk_score: dna.risk_score ?? 50,
-    answers: dna.answers ?? {},
+    answers: (dna.answers ?? {}) as Record<string, string | number | string[]>,
   }
 }
 

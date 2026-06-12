@@ -59,7 +59,7 @@ export interface Database {
       }
       access_codes: {
         Row: AccessCode
-        Insert: Omit<AccessCode, 'id' | 'times_used' | 'created_at'>
+        Insert: Omit<AccessCode, 'id' | 'times_used' | 'created_at' | 'expires_at'> & { expires_at?: string | null }
         Update: Partial<AccessCode>
         Relationships: []
       }
@@ -70,16 +70,7 @@ export interface Database {
     CompositeTypes: Record<string, never>
   }
 }
-type AnalyticsInsert =
-  Database['public']['Tables']['analytics_events']['Insert']
-
-const analyticsInsertTest: AnalyticsInsert = {
-  user_id: '123',
-  event_name: 'test',
-  properties: {},
-  session_id: 'abc',
-}
-export interface Profile {
+export type Profile = {
   id: string
   email: string | null
   full_name: string | null
@@ -104,7 +95,7 @@ export type KnowledgeLevel = 'beginner' | 'starter' | 'intermediate' | 'expert'
 export type TimeCommitment = 'passive' | 'monthly' | 'weekly' | 'active'
 export type RiskTolerance = 'very_conservative' | 'conservative' | 'moderate' | 'growth' | 'aggressive'
 
-export interface DnaAssessment {
+export type DnaAssessment = {
   id: string
   user_id: string
   answers: Json
@@ -122,7 +113,7 @@ export interface DnaAssessment {
   created_at: string
 }
 
-export interface Portfolio {
+export type Portfolio = {
   id: string
   user_id: string
   name: string
@@ -133,7 +124,7 @@ export interface Portfolio {
   updated_at: string
 }
 
-export interface Holding {
+export type Holding = {
   id: string
   portfolio_id: string
   user_id: string
@@ -148,14 +139,14 @@ export interface Holding {
   updated_at: string
 }
 
-export interface Watchlist {
+export type Watchlist = {
   id: string
   user_id: string
   name: string
   created_at: string
 }
 
-export interface WatchlistItem {
+export type WatchlistItem = {
   id: string
   watchlist_id: string
   user_id: string
@@ -165,7 +156,7 @@ export interface WatchlistItem {
   added_at: string
 }
 
-export interface FinancialGoalRow {
+export type FinancialGoalRow = {
   id: string
   user_id: string
   type: 'retirement' | 'house' | 'education' | 'fire' | 'business' | 'custom'
@@ -179,7 +170,7 @@ export interface FinancialGoalRow {
   updated_at: string
 }
 
-export interface AnalyticsEvent {
+export type AnalyticsEvent = {
   id: string
   user_id: string | null
   event_name: string
@@ -188,7 +179,7 @@ export interface AnalyticsEvent {
   created_at: string
 }
 
-export interface SubscriptionRow {
+export type SubscriptionRow = {
   id: string
   user_id: string
   stripe_customer_id: string | null
@@ -203,7 +194,7 @@ export interface SubscriptionRow {
   updated_at: string
 }
 
-export interface AccessCode {
+export type AccessCode = {
   id: string
   code: string
   tier: string
@@ -218,7 +209,7 @@ export type ExperienceMode = 'beginner' | 'explorer' | 'builder' | 'analyst'
 
 export type SubscriptionTier = 'free' | 'plus' | 'pro'
 
-export interface FeatureAccess {
+export type FeatureAccess = {
   portfolioDoctor: boolean
   opportunityScanner: boolean
   newsIntelligence: boolean
