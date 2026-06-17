@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/context/AuthContext'
 import { AlertsProvider } from '@/context/AlertsContext'
@@ -6,6 +7,8 @@ import { ModalProvider } from '@/components/ui/Modal'
 import { SubscriptionProvider } from '@/context/SubscriptionContext'
 import { AuthPage } from '@/pages/AuthPage'
 import { OnboardingPage } from '@/pages/OnboardingPage'
+import { DisclaimerPage } from '@/pages/DisclaimerPage'
+import { Tutorial } from '@/components/ui/Tutorial'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { PortfolioPage } from '@/pages/PortfolioPage'
@@ -26,6 +29,35 @@ import { LoadingSpinner } from '@/components/ui/Skeleton'
 function AppRoutes() {
   const { user, dna, loading } = useAuth()
 
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false)
+  const [dnaSkipped, setDnaSkipped]                 = useState(false)
+  const [tutorialDone, setTutorialDone]             = useState(false)
+
+  useEffect(() => {
+    if (!user) return
+    setDisclaimerAccepted(localStorage.getItem(`disclaimer_${user.id}`) === '1')
+    setDnaSkipped(localStorage.getItem(`dna_skip_${user.id}`) === '1')
+    setTutorialDone(localStorage.getItem(`tutorial_done_${user.id}`) === '1')
+  }, [user?.id])
+
+  function acceptDisclaimer() {
+    if (!user) return
+    localStorage.setItem(`disclaimer_${user.id}`, '1')
+    setDisclaimerAccepted(true)
+  }
+
+  function skipDna() {
+    if (!user) return
+    localStorage.setItem(`dna_skip_${user.id}`, '1')
+    setDnaSkipped(true)
+  }
+
+  function completeTutorial() {
+    if (!user) return
+    localStorage.setItem(`tutorial_done_${user.id}`, '1')
+    setTutorialDone(true)
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: '#09090f' }}>
@@ -38,7 +70,8 @@ function AppRoutes() {
   }
 
   if (!user) return <AuthPage />
-  if (!dna) return <OnboardingPage />
+  if (!disclaimerAccepted) return <DisclaimerPage onAccept={acceptDisclaimer} />
+  if (!dna && !dnaSkipped) return <OnboardingPage onSkip={skipDna} />
 
   return (
     <AlertsProvider>
@@ -64,6 +97,7 @@ function AppRoutes() {
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Route>
         </Routes>
+        {!tutorialDone && <Tutorial onComplete={completeTutorial} />}
       </SubscriptionProvider>
     </AlertsProvider>
   )
