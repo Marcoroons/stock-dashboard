@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, createContext, useContext, type ReactNode } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
-import { generateAlerts, countAlerts, type AlertType } from '@/lib/alert-engine'
-import { MOCK_HOLDINGS, MOCK_PORTFOLIO, MOCK_NEWS } from '@/data/mock'
+import { generateAlerts, countAlerts, type AlertType, type AlertHolding, type AlertPortfolio } from '@/lib/alert-engine'
+import { MOCK_NEWS } from '@/data/mock'
+import { fetchBulkQuotes } from '@/lib/market-data'
 import { toDnaInput } from '@/lib/utils'
 
 export interface PersistedAlert {
@@ -31,6 +32,7 @@ interface AlertsContextValue {
 
 const AlertsContext = createContext<AlertsContextValue | null>(null)
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as any
 const STALE_HOURS = 6
 
@@ -55,17 +57,62 @@ export function AlertsProvider({ children }: { children: ReactNode }) {
     const needsRefresh = !mostRecent || (Date.now() - new Date(mostRecent.generated_at).getTime()) > staleMs
 
     if (needsRefresh) {
-      // Fetch goals from supabase
-      const { data: goalsData } = await db
-        .from('financial_goals')
-        .select('*')
-        .eq('user_id', user.id)
+      // Fetch goals and real holdings from supabase
+      const [{ data: goalsData }, { data: portfolioData }] = await Promise.all([
+        db.from('financial_goals').select('*').eq('user_id', user.id),
+        db.from('portfolios').select('id').eq('user_id', user.id).eq('is_default', true).maybeSingle(),
+      ])
       const goals = goalsData ?? []
+
+      // Build real holdings for alert generation
+      let alertHoldings: AlertHolding[] = []
+      let alertPortfolio: AlertPortfolio = { totalValue: 0, beta: 1, volatility: 0.15, sharpe: 1, ytdReturn: 0, maxDrawdown: 0 }
+
+      if (portfolioData?.id) {
+        const { data: holdingsData } = await db
+          .from('holdings')
+          .select('*')
+          .eq('portfolio_id', portfolioData.id)
+
+        const dbHoldings = holdingsData ?? []
+        if (dbHoldings.length > 0) {
+          const tickers: string[] = dbHoldings.map((h: any) => h.ticker)
+          let quotes: Record<string, { c: number; dp: number }> = {}
+          try { quotes = await fetchBulkQuotes(tickers) } catch { /* use cost basis */ }
+
+          const withPrices = dbHoldings.map((h: any) => {
+            const q = quotes[h.ticker]
+            const price = (q?.c && q.c > 0) ? q.c : h.cost_basis
+            return { ...h, currentPrice: price, dayChange: q?.dp ?? 0 }
+          })
+
+          const totalValue = withPrices.reduce((s: number, h: any) => s + h.currentPrice * h.shares, 0)
+
+          alertHoldings = withPrices.map((h: any) => ({
+            ticker: h.ticker,
+            name: h.name ?? h.ticker,
+            sector: 'Unknown',
+            weight: totalValue > 0 ? (h.currentPrice * h.shares) / totalValue : 0,
+            change: h.dayChange,
+            costBasis: h.cost_basis,
+            currentPrice: h.currentPrice,
+          }))
+
+          alertPortfolio = {
+            totalValue,
+            beta: 1,
+            volatility: 0.15,
+            sharpe: 1,
+            ytdReturn: 0,
+            maxDrawdown: 0,
+          }
+        }
+      }
 
       // Generate fresh alerts
       const generated = generateAlerts({
-        holdings: MOCK_HOLDINGS,
-        portfolio: MOCK_PORTFOLIO,
+        holdings: alertHoldings,
+        portfolio: alertPortfolio,
         dna: dna ? toDnaInput(dna) : null,
         news: MOCK_NEWS as any,
         goals,

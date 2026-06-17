@@ -63,6 +63,12 @@ export interface Database {
         Update: Partial<AccessCode>
         Relationships: []
       }
+      portfolio_alerts: {
+        Row: PortfolioAlert
+        Insert: Partial<PortfolioAlert>
+        Update: Partial<PortfolioAlert>
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>
@@ -202,6 +208,20 @@ export type AccessCode = {
   times_used: number
   expires_at: string | null
   is_active: boolean
+  created_at: string
+}
+
+export type PortfolioAlert = {
+  id: string
+  user_id: string
+  type: string
+  priority: 'critical' | 'warning' | 'info' | 'positive'
+  title: string
+  body: string
+  meta: Json
+  read: boolean
+  dismissed: boolean
+  generated_at: string
   created_at: string
 }
 
