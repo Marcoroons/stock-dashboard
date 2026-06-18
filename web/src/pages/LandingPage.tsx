@@ -1,243 +1,405 @@
-import { useRef } from 'react'
+import { useId } from 'react'
 import { motion } from 'framer-motion'
-import { UserCheck, BookOpen, PieChart, ArrowRight, ChevronDown, LogIn, Check } from 'lucide-react'
+import { Dna, BarChart3, BookOpen, ArrowRight, ChevronDown } from 'lucide-react'
 import { ShaderAnimation } from '@/components/ui/ShaderAnimation'
+import { cn } from '@/lib/utils'
+
+// ─── Props ────────────────────────────────────────────────────────────────────
 
 interface LandingPageProps {
   onGetStarted: () => void
   onLogin: () => void
 }
 
-const BENEFITS = [
+// ─── Inline logo ──────────────────────────────────────────────────────────────
+// Bunny/skull silhouette — no external file needed.
+// Uses SVG mask so currentColor controls the shape and holes are truly transparent.
+
+function MadyLogo({ className }: { className?: string }) {
+  const id = useId().replace(/:/g, '-')
+  return (
+    <svg
+      viewBox="0 0 100 112"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      aria-label="Mady Finance logo"
+    >
+      <defs>
+        <mask id={id}>
+          {/* Filled white = visible region */}
+          <ellipse cx="28" cy="27" rx="22" ry="26" fill="white" />
+          <ellipse cx="72" cy="27" rx="22" ry="26" fill="white" />
+          <ellipse cx="50" cy="75" rx="45" ry="35" fill="white" />
+          {/* Black = transparent holes (eye sockets + diamond nose) */}
+          <path d="M13,77 C17,67 29,63 39,69 C36,80 23,83 13,77Z" fill="black" />
+          <path d="M87,77 C83,67 71,63 61,69 C64,80 77,83 87,77Z" fill="black" />
+          <polygon points="50,87 54,91 50,95 46,91" fill="black" />
+        </mask>
+      </defs>
+      <rect width="100" height="112" fill="currentColor" mask={`url(#${id})`} />
+    </svg>
+  )
+}
+
+// ─── Shared animation helpers ─────────────────────────────────────────────────
+
+const fadeUp = {
+  initial:    { opacity: 0, y: 32 },
+  whileInView:{ opacity: 1, y: 0 },
+  viewport:   { once: true as const, amount: 0.25 },
+}
+
+const springBounce = {
+  type: 'spring' as const,
+  stiffness: 180,
+  damping: 14,
+  mass: 0.7,
+}
+
+// ─── Feature data ─────────────────────────────────────────────────────────────
+
+const FEATURES = [
   {
-    icon: UserCheck,
-    title: 'Know Your Investor Type',
-    description: 'A 2-minute assessment reveals your unique investor DNA — risk profile, style, and the boundaries that keep you sleeping at night.',
+    n:    '01',
+    icon: Dna,
+    head: 'Psychometric Assessment',
+    body: 'We decode your relationship with risk, time, and money — building a complete investor archetype before you place a single trade.',
   },
   {
+    n:    '02',
+    icon: BarChart3,
+    head: 'Portfolio Tracking',
+    body: 'One dashboard for your holdings. Run health checks, stress-test against real market crashes, and watch your wealth grow in real time.',
+  },
+  {
+    n:    '03',
     icon: BookOpen,
-    title: 'Learn As You Invest',
-    description: 'Plain-English insights, zero jargon. The Academy grows with you from first investment to confident portfolio builder.',
-  },
-  {
-    icon: PieChart,
-    title: 'Track & Grow Your Portfolio',
-    description: 'Monitor your holdings, stress-test against real crashes, and get smart alerts tuned to your sectors and goals.',
+    head: 'Learn as You Invest',
+    body: 'Every decision comes with a plain-English explanation. The academy levels up with you — from first trade to confident portfolio builder.',
   },
 ]
 
-const TRUST = ['10-day free trial', 'No credit card required', 'Cancel anytime']
+// ─── Main component ───────────────────────────────────────────────────────────
 
 export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
-  const contentRef = useRef<HTMLElement>(null)
-
-  function scrollToContent() {
-    contentRef.current?.scrollIntoView({ behavior: 'smooth' })
+  function scrollTo(id: string) {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
   }
 
   return (
-    <div className="bg-[#F5F4F0]">
+    <div className="bg-[#080808] text-white selection:bg-white/20">
 
-      {/* ── HERO ── dark, full-screen, shader behind everything ─────────────── */}
-      <section className="relative h-screen overflow-hidden bg-[#080808]">
+      {/* ════════════════════════════════════════════════════════════════════
+          SECTION 1 — HERO (shader + brand)
+      ════════════════════════════════════════════════════════════════════ */}
+      <section className="relative h-screen overflow-hidden">
 
-        {/* Shader fills the whole hero */}
+        {/* Shader animation fills the entire hero */}
         <div className="absolute inset-0">
           <ShaderAnimation className="w-full h-full" />
         </div>
 
-        {/* Dark radial vignette — keeps center vibrant, edges dark */}
+        {/* Vignette — darkens edges, preserves centre colour */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background:
-              'radial-gradient(ellipse 80% 70% at 50% 50%, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.72) 100%)',
+            background: 'radial-gradient(ellipse 75% 65% at 50% 50%, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.80) 100%)',
           }}
         />
 
-        {/* Navbar */}
-        <nav className="absolute top-0 inset-x-0 z-20 flex items-center justify-between px-6 sm:px-10 py-5">
+        {/* Minimal nav */}
+        <nav className="absolute top-0 inset-x-0 z-20 flex items-center justify-between px-8 py-6">
           <div className="flex items-center gap-3">
-            {/* Logo — inverted to white on dark background */}
-            <img
-              src="/logo.png"
-              alt="Mady Finance"
-              className="w-8 h-8 object-contain"
-              style={{ filter: 'invert(1)' }}
-            />
-            <span className="text-white font-semibold tracking-wide text-sm">
+            <MadyLogo className="w-7 h-7 text-white opacity-90" />
+            <span className="text-white/70 text-xs tracking-[0.22em] uppercase font-light">
               Mady Finance
             </span>
           </div>
           <button
             onClick={onLogin}
-            className="flex items-center gap-2 text-white/60 hover:text-white text-sm font-medium transition-colors cursor-pointer"
+            className="text-white/40 hover:text-white text-xs tracking-widest uppercase transition-colors cursor-pointer font-light"
           >
-            <LogIn className="w-4 h-4" strokeWidth={2} />
             Log in
           </button>
         </nav>
 
-        {/* Centered hero content */}
+        {/* Centre brand statement */}
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-6">
           <motion.div
-            initial={{ opacity: 0, scale: 0.92, y: 16 }}
+            initial={{ opacity: 0, scale: 0.88, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ delay: 0.25, duration: 0.9, ease: 'easeOut' }}
-            className="flex flex-col items-center"
+            transition={{ delay: 0.2, duration: 1, ease: 'easeOut' }}
+            className="flex flex-col items-center gap-5"
           >
-            {/* Large logo mark */}
-            <img
-              src="/logo.png"
-              alt="Mady Finance"
-              className="w-24 h-24 sm:w-28 sm:h-28 object-contain mb-8 select-none"
-              style={{ filter: 'invert(1)' }}
-              draggable={false}
-            />
+            <MadyLogo className="w-20 h-20 sm:w-24 sm:h-24 text-white" />
 
-            {/* Brand name */}
-            <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold text-white tracking-[0.18em] uppercase mb-4 leading-none">
+            <h1 className="text-[clamp(2.8rem,8vw,6rem)] font-black text-white tracking-[0.15em] uppercase leading-none">
               Mady Finance
             </h1>
 
-            {/* Tagline */}
-            <p className="text-white/40 text-base sm:text-lg tracking-widest uppercase font-light">
-              Built for beginner investors
+            <p className="text-white/40 text-sm sm:text-base tracking-[0.3em] uppercase font-light">
+              Investing for Beginners
             </p>
           </motion.div>
         </div>
 
-        {/* Scroll-down indicator */}
+        {/* Scroll cue */}
         <button
-          onClick={scrollToContent}
-          aria-label="Scroll to content"
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1.5 text-white/30 hover:text-white/60 transition-colors cursor-pointer group"
+          onClick={() => scrollTo('pain')}
+          aria-label="Scroll down"
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 text-white/25 hover:text-white/50 transition-colors cursor-pointer"
         >
-          <span className="text-[11px] uppercase tracking-widest font-light">Explore</span>
           <motion.div
-            animate={{ y: [0, 6, 0] }}
-            transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}
+            animate={{ y: [0, 7, 0] }}
+            transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
           >
             <ChevronDown className="w-5 h-5" strokeWidth={1.5} />
           </motion.div>
         </button>
       </section>
 
-      {/* ── CONTENT ── bone/ceramic white ───────────────────────────────────── */}
-      <section ref={contentRef} className="bg-[#F5F4F0] px-6 py-24 sm:py-32">
-        <div className="max-w-4xl mx-auto">
-
-          {/* Headline block */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="text-center mb-14"
-          >
-            <p className="text-[11px] font-semibold tracking-[0.2em] uppercase text-[#9A9A9A] mb-5">
-              Your investing companion
-            </p>
-            <h2 className="text-4xl sm:text-5xl font-bold text-[#111111] leading-tight tracking-tight mb-5">
-              Learn to Invest
-              <br />
-              <span className="text-[#444444]">with Confidence</span>
-            </h2>
-            <p className="text-[#6B6B6B] text-lg leading-relaxed max-w-xl mx-auto mb-10">
-              A personalised platform built entirely around your investor profile.
-              Understand your DNA, track your portfolio, and grow — one step at a time.
-            </p>
-
-            {/* Trust badges */}
-            <div className="flex items-center justify-center gap-6 flex-wrap mb-10">
-              {TRUST.map(t => (
-                <div key={t} className="flex items-center gap-1.5 text-xs text-[#888888]">
-                  <Check className="w-3.5 h-3.5 text-[#555555]" strokeWidth={2.5} />
-                  {t}
-                </div>
-              ))}
-            </div>
-
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={onGetStarted}
-                className="flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl bg-[#111111] text-white text-sm font-semibold min-w-[200px] min-h-[52px] cursor-pointer hover:bg-[#222222] transition-colors shadow-md shadow-black/10"
-              >
-                Start Free Trial
-                <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={onLogin}
-                className="flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl border border-[#CCCCCC] text-[#333333] text-sm font-semibold min-w-[160px] min-h-[52px] cursor-pointer hover:border-[#888888] hover:bg-[#EEEDE9] transition-all"
-              >
-                Log In
-              </motion.button>
-            </div>
-          </motion.div>
-
-          {/* Divider */}
-          <div className="border-t border-[#E4E2DC] mb-14" />
-
-          {/* Benefit cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {BENEFITS.map((b, i) => (
-              <motion.div
-                key={b.title}
-                initial={{ opacity: 0, y: 28 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-40px' }}
-                transition={{ delay: i * 0.1, duration: 0.5, ease: 'easeOut' }}
-                className="flex flex-col items-start p-7 rounded-2xl bg-white border border-[#E4E2DC] shadow-sm"
-              >
-                <div className="w-14 h-14 rounded-xl bg-[#F0EFEB] flex items-center justify-center mb-5">
-                  <b.icon className="w-7 h-7 text-[#333333]" strokeWidth={2} />
-                </div>
-                <h3 className="font-semibold text-[#111111] text-base mb-2">{b.title}</h3>
-                <p className="text-sm text-[#777777] leading-relaxed">{b.description}</p>
-              </motion.div>
-            ))}
-          </div>
+      {/* ════════════════════════════════════════════════════════════════════
+          SECTION 2 — PAIN POINTS
+      ════════════════════════════════════════════════════════════════════ */}
+      <section
+        id="pain"
+        className="min-h-screen flex flex-col items-start justify-center px-8 sm:px-16 lg:px-28 py-32 bg-[#050505]"
+      >
+        <div className="max-w-3xl space-y-4">
+          {[
+            { text: 'No investing experience?', dim: false, delay: 0 },
+            { text: 'Good.',                     dim: true,  delay: 0.18 },
+            { text: "We'll meet you",            dim: false, delay: 0.36 },
+            { text: 'where you are.',            dim: false, delay: 0.52 },
+          ].map(({ text, dim, delay }) => (
+            <motion.p
+              key={text}
+              initial={{ opacity: 0, x: -24 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, amount: 0.4 }}
+              transition={{ delay, duration: 0.65, ease: 'easeOut' }}
+              className={cn(
+                'font-black leading-none',
+                'text-[clamp(2.4rem,6.5vw,5rem)]',
+                dim ? 'text-white/20' : 'text-white',
+              )}
+            >
+              {text}
+            </motion.p>
+          ))}
         </div>
-      </section>
 
-      {/* ── STRIP ─── dark accent ───────────────────────────────────────────── */}
-      <section className="bg-[#111111] py-16 px-6 text-center">
+        {/* Supporting micro-lines */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          {...fadeUp}
+          transition={{ delay: 0.7, duration: 0.6 }}
+          className="mt-16 space-y-3 pl-1"
         >
-          <p className="text-2xl font-semibold text-white mb-3 tracking-tight">
-            Built for investors who are just getting started
-          </p>
-          <p className="text-[#888888] text-base max-w-lg mx-auto">
-            No jargon. No overwhelming dashboards. Just the right tools, explained clearly,
-            personalised to you.
+          {[
+            'Unsure where to start?',
+            'Money sitting in savings?',
+            'Stock apps too overwhelming?',
+          ].map(line => (
+            <p key={line} className="text-white/30 text-base sm:text-lg font-light tracking-wide">
+              {line}
+            </p>
+          ))}
+          <p className="text-white/70 text-base sm:text-lg font-medium tracking-wide pt-1">
+            Let&apos;s fix that.
           </p>
         </motion.div>
       </section>
 
-      {/* ── FOOTER ──────────────────────────────────────────────────────────── */}
-      <footer className="bg-[#F5F4F0] border-t border-[#E4E2DC] py-8 px-6 text-center">
-        <div className="flex items-center justify-center gap-2.5 mb-3">
-          <img
-            src="/logo.png"
-            alt="Mady Finance"
-            className="w-5 h-5 object-contain opacity-40"
-            draggable={false}
-          />
-          <span className="text-[#AAAAAA] text-xs font-medium tracking-wide">Mady Finance</span>
+      {/* ════════════════════════════════════════════════════════════════════
+          SECTION 3 — VALUE PROP + PRIMARY CTA
+      ════════════════════════════════════════════════════════════════════ */}
+      <section className="flex flex-col items-center justify-center px-8 py-32 bg-[#0A0A0A] text-center">
+        <motion.p
+          {...fadeUp}
+          transition={{ duration: 0.6 }}
+          className="text-white/30 text-xs tracking-[0.3em] uppercase mb-6"
+        >
+          How it works
+        </motion.p>
+
+        <motion.h2
+          {...fadeUp}
+          transition={{ delay: 0.1, duration: 0.7 }}
+          className="text-[clamp(2rem,5vw,3.8rem)] font-black text-white leading-tight tracking-tight max-w-2xl mb-6"
+        >
+          Built Around
+          <br />
+          Your Personality.
+        </motion.h2>
+
+        <motion.p
+          {...fadeUp}
+          transition={{ delay: 0.2, duration: 0.7 }}
+          className="text-white/40 text-lg leading-relaxed max-w-xl mb-14"
+        >
+          No jargon. No guesswork.
+          <br />
+          Uncover your investing style — receive guidance designed specifically for you.
+        </motion.p>
+
+        {/* Spring-bounce CTA */}
+        <motion.button
+          initial={{ opacity: 0, y: 60 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.5 }}
+          transition={springBounce}
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.96 }}
+          onClick={onGetStarted}
+          className="flex items-center gap-3 px-10 py-5 rounded-2xl bg-white text-[#080808] font-bold text-base tracking-tight cursor-pointer shadow-2xl shadow-white/10 hover:bg-white/90 transition-colors"
+        >
+          Try Free Trial Now
+          <ArrowRight className="w-5 h-5" strokeWidth={2.5} />
+        </motion.button>
+
+        <motion.p
+          {...fadeUp}
+          transition={{ delay: 0.5, duration: 0.5 }}
+          className="text-white/20 text-xs mt-5 tracking-wider"
+        >
+          10 days free · no credit card
+        </motion.p>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════════
+          SECTION 4 — FEATURES (one by one)
+      ════════════════════════════════════════════════════════════════════ */}
+      {FEATURES.map((feat, i) => {
+        const Icon    = feat.icon
+        const isEven  = i % 2 === 0
+        const sectionBg = i === 1 ? 'bg-[#0D0D0D]' : 'bg-[#080808]'
+
+        return (
+          <section
+            key={feat.n}
+            className={cn(
+              'flex flex-col md:flex-row items-center gap-16 px-8 sm:px-16 lg:px-24 py-28 md:py-36',
+              sectionBg,
+              !isEven && 'md:flex-row-reverse',
+            )}
+          >
+            {/* Icon visual */}
+            <motion.div
+              {...fadeUp}
+              transition={{ duration: 0.7 }}
+              className="flex-shrink-0 flex items-center justify-center w-full md:w-2/5"
+            >
+              <div className="relative flex items-center justify-center">
+                {/* Outer glow */}
+                <div className="absolute w-64 h-64 rounded-full bg-white/5 blur-3xl" />
+                {/* Container */}
+                <div className="relative w-52 h-52 rounded-[2.5rem] border border-white/8 bg-white/[0.03] flex items-center justify-center backdrop-blur-sm">
+                  <Icon className="w-24 h-24 text-white/60" strokeWidth={1} />
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Text */}
+            <div className="flex-1 max-w-lg">
+              <motion.p
+                {...fadeUp}
+                transition={{ delay: 0.05, duration: 0.5 }}
+                className="text-white/20 text-sm font-mono tracking-[0.2em] mb-5"
+              >
+                {feat.n}
+              </motion.p>
+              <motion.h3
+                {...fadeUp}
+                transition={{ delay: 0.12, duration: 0.6 }}
+                className="text-[clamp(1.8rem,3.5vw,2.8rem)] font-black text-white leading-tight tracking-tight mb-5"
+              >
+                {feat.head}
+              </motion.h3>
+              <motion.p
+                {...fadeUp}
+                transition={{ delay: 0.2, duration: 0.6 }}
+                className="text-white/40 text-lg leading-relaxed"
+              >
+                {feat.body}
+              </motion.p>
+            </div>
+          </section>
+        )
+      })}
+
+      {/* ════════════════════════════════════════════════════════════════════
+          SECTION 5 — FINAL CTA
+      ════════════════════════════════════════════════════════════════════ */}
+      <section className="flex flex-col items-center justify-center text-center px-8 py-32 bg-[#050505]">
+        <motion.div
+          {...fadeUp}
+          transition={{ duration: 0.6 }}
+          className="flex items-center gap-3 mb-8"
+        >
+          <MadyLogo className="w-8 h-8 text-white/60" />
+          <span className="text-white/40 text-xs tracking-[0.3em] uppercase">Mady Finance</span>
+        </motion.div>
+
+        <motion.h2
+          {...fadeUp}
+          transition={{ delay: 0.1, duration: 0.7 }}
+          className="text-[clamp(2rem,5vw,3.5rem)] font-black text-white leading-tight tracking-tight mb-4 max-w-xl"
+        >
+          Your first step starts here.
+        </motion.h2>
+
+        <motion.p
+          {...fadeUp}
+          transition={{ delay: 0.18, duration: 0.6 }}
+          className="text-white/30 text-lg mb-12 max-w-md leading-relaxed"
+        >
+          Join thousands of beginners who finally understand their money.
+        </motion.p>
+
+        {/* Bounce-in buttons */}
+        <div className="flex flex-col sm:flex-row items-center gap-4">
+          <motion.button
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ ...springBounce, delay: 0 }}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={onGetStarted}
+            className="flex items-center justify-center gap-2.5 px-9 py-4 rounded-xl bg-white text-[#080808] font-bold text-sm cursor-pointer hover:bg-white/90 transition-colors min-w-[200px] min-h-[52px]"
+          >
+            Start Free Trial
+            <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
+          </motion.button>
+
+          <motion.button
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ ...springBounce, delay: 0.12 }}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={onLogin}
+            className="flex items-center justify-center gap-2.5 px-9 py-4 rounded-xl border border-white/15 text-white/60 hover:text-white hover:border-white/30 font-medium text-sm cursor-pointer transition-all min-w-[160px] min-h-[52px]"
+          >
+            Log In
+          </motion.button>
         </div>
-        <p className="text-[#BBBBBB] text-xs">
-          © 2025 Mady Finance · Not financial advice · For educational purposes only
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════════
+          FOOTER
+      ════════════════════════════════════════════════════════════════════ */}
+      <footer className="border-t border-white/[0.06] px-8 py-8 bg-[#050505] flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-2.5">
+          <MadyLogo className="w-5 h-5 text-white/30" />
+          <span className="text-white/25 text-xs tracking-widest uppercase">Mady Finance</span>
+        </div>
+        <p className="text-white/20 text-xs">
+          © 2025 · Not financial advice · Educational use only
         </p>
       </footer>
+
     </div>
   )
 }
