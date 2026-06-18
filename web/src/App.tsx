@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { ThemeProvider } from '@/context/ThemeContext'
 import { AuthProvider, useAuth } from '@/context/AuthContext'
 import { AlertsProvider } from '@/context/AlertsContext'
 import { NotificationProvider } from '@/components/ui/Toast'
@@ -60,10 +61,10 @@ function AppRoutes() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#09090f' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--color-bg-primary)' }}>
         <div className="flex flex-col items-center gap-4">
           <LoadingSpinner size="lg" />
-          <p className="text-[#64748b] text-sm">Loading your portfolio...</p>
+          <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Loading your portfolio...</p>
         </div>
       </div>
     )
@@ -106,13 +107,15 @@ function AppRoutes() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <NotificationProvider>
-          <ModalProvider>
-            <AppRoutes />
-          </ModalProvider>
-        </NotificationProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <NotificationProvider>
+            <ModalProvider>
+              <AppRoutes />
+            </ModalProvider>
+          </NotificationProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   )
 }

@@ -18,11 +18,12 @@ export function Card({ children, className, style, onClick, hover = false, glow 
       className={cn(
         'glass-card',
         padding === 'none' && 'p-0',
-        padding === 'sm' && 'p-3',
-        padding === 'md' && 'p-5',
-        padding === 'lg' && 'p-7',
-        hover && 'cursor-pointer transition-all duration-200 hover:border-[#3b82f6]/40 hover:translate-y-[-2px]',
-        glow && 'hover:shadow-[0_0_30px_rgba(59,130,246,0.12)]',
+        padding === 'sm'  && 'p-3',
+        padding === 'md'  && 'p-5',
+        padding === 'lg'  && 'p-7',
+        hover && 'cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md',
+        hover && 'hover:border-sky-200 dark:hover:border-sky-800',
+        glow && 'hover:shadow-[0_0_24px_rgba(2,132,199,0.1)] dark:hover:shadow-[0_0_24px_rgba(56,189,248,0.12)]',
         className,
       )}
     >
@@ -42,16 +43,27 @@ interface MetricCardProps {
 }
 
 export function MetricCard({ label, value, subvalue, delta, className }: MetricCardProps) {
-  const trendColor = delta
-    ? delta.startsWith('+') ? '#10b981' : delta.startsWith('-') ? '#ef4444' : '#94a3b8'
-    : '#94a3b8'
+  const isPositive = delta?.startsWith('+')
+  const isNegative = delta?.startsWith('-')
 
   return (
-    <div className={cn('glass-card p-4', className)}>
-      <p className="text-xs text-[#64748b] font-medium uppercase tracking-wider mb-1.5">{label}</p>
-      <p className="text-xl font-semibold text-[#f1f5f9]">{value}</p>
+    <div className={cn(
+      'glass-card p-5',
+      className,
+    )}>
+      <p className="text-xs font-semibold uppercase tracking-wider mb-2 text-stone-500 dark:text-stone-400">
+        {label}
+      </p>
+      <p className="text-2xl font-bold text-stone-900 dark:text-stone-50">
+        {value}
+      </p>
       {(delta || subvalue) && (
-        <p className="text-xs mt-1" style={{ color: trendColor }}>
+        <p className={cn(
+          'text-sm mt-1 font-medium',
+          isPositive && 'text-green-600 dark:text-green-400',
+          isNegative && 'text-red-600 dark:text-red-400',
+          !isPositive && !isNegative && 'text-stone-500 dark:text-stone-400',
+        )}>
           {delta || subvalue}
         </p>
       )}

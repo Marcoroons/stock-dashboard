@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Briefcase, ArrowUpRight, ArrowDownRight, Eye, Plus, Dna, ChartBar as BarChart3, Shield, ChevronRight, X } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
 import {
-  AreaChart, Area, ResponsiveContainer, Tooltip,
-  PieChart, Pie, Cell, CartesianGrid, XAxis, YAxis,
-} from 'recharts'
+  Briefcase, ArrowUpRight, ArrowDownRight, Eye, Plus, Dna,
+  BarChart3, Shield, ChevronRight, X, TrendingUp, BookOpen,
+} from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { AreaChart, Area, ResponsiveContainer, Tooltip, CartesianGrid, XAxis, YAxis } from 'recharts'
 import { useAuth } from '@/context/AuthContext'
 import { Card, MetricCard } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -18,12 +18,7 @@ import { ALL_ARCHETYPES } from '@/lib/archetypes'
 import { fetchBulkQuotes, type FinnhubQuote } from '@/lib/market-data'
 import { usePortfolio } from '@/hooks/usePortfolio'
 import { useWatchlist } from '@/hooks/useWatchlist'
-
-const SENTIMENT_STYLES = {
-  bullish: { bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.25)', color: '#10b981', label: 'Bullish' },
-  neutral: { bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.25)', color: '#f59e0b', label: 'Neutral' },
-  bearish: { bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.25)', color: '#ef4444', label: 'Bearish' },
-}
+import { cn } from '@/lib/utils'
 
 function DnaCard() {
   const { dna } = useAuth()
@@ -40,40 +35,53 @@ function DnaCard() {
   const riskColor = getRiskColor(profile.riskLevel)
 
   return (
-    <Card
-      className="border-[rgba(59,130,246,0.25)]"
-      style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.06) 0%, rgba(6,182,212,0.03) 100%)' }}
-    >
+    <Card className="border-sky-200 dark:border-sky-800 bg-sky-50/60 dark:bg-sky-900/10">
       <div className="flex items-start justify-between gap-4 mb-4">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-3">
-            <Dna className="w-4 h-4 text-[#3b82f6]" />
-            <span className="text-xs font-medium text-[#3b82f6] uppercase tracking-wider">Investor DNA</span>
+            <Dna className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+            <span className="text-xs font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider">
+              Investor DNA
+            </span>
           </div>
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-2xl">{primaryArch.icon}</span>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center text-xl">
+              {primaryArch.icon}
+            </div>
             <div>
-              <h3 className="text-base font-bold" style={{ color: primaryArch.color }}>{primaryArch.label}</h3>
-              <p className="text-xs text-[#64748b]">{primaryArch.tagline}</p>
+              <h3 className="text-base font-bold" style={{ color: primaryArch.color }}>
+                {primaryArch.label}
+              </h3>
+              <p className="text-sm text-stone-500 dark:text-stone-400">{primaryArch.tagline}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 mt-2">
-            <span className="text-base">{behaviorArch.icon}</span>
-            <span className="text-xs text-[#94a3b8]">{behaviorArch.label}</span>
-            <span className="text-[#334155]">·</span>
-            <span className="text-xs font-medium" style={{ color: riskColor }}>{getRiskLabel(profile.riskLevel)}</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm">{behaviorArch.icon}</span>
+            <span className="text-sm text-stone-600 dark:text-stone-300">{behaviorArch.label}</span>
+            <span className="text-stone-300 dark:text-stone-600">·</span>
+            <span className="text-sm font-semibold" style={{ color: riskColor }}>
+              {getRiskLabel(profile.riskLevel)}
+            </span>
           </div>
         </div>
-        <ScoreRing score={profile.riskScore} size={64} color={riskColor} label="Risk" />
+        <ScoreRing score={profile.riskScore} size={72} color={riskColor} label="Risk" />
       </div>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <div className="flex gap-1.5 flex-wrap">
           {profile.personalityTags.slice(0, 3).map(t => (
-            <span key={t} className="text-[10px] px-2 py-0.5 rounded-full bg-[#1e1e3a] text-[#64748b]">{t}</span>
+            <span
+              key={t}
+              className="text-xs px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-300 border border-stone-200 dark:border-stone-700"
+            >
+              {t}
+            </span>
           ))}
         </div>
-        <Link to="/dna" className="flex items-center gap-1 text-xs text-[#3b82f6] hover:text-[#60a5fa] transition-colors">
-          Full profile <ChevronRight className="w-3 h-3" />
+        <Link
+          to="/dna"
+          className="flex items-center gap-1 text-sm text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-medium transition-colors whitespace-nowrap"
+        >
+          Full profile <ChevronRight className="w-3.5 h-3.5" />
         </Link>
       </div>
     </Card>
@@ -82,28 +90,30 @@ function DnaCard() {
 
 function PortfolioChart() {
   const data = MOCK_PERFORMANCE_SERIES.slice(-60)
+
   const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: { value: number }[] }) => {
     if (!active || !payload?.length) return null
     return (
-      <div className="glass-card px-3 py-2 text-sm">
-        <span className="text-[#f1f5f9] font-medium">${fmtBig(payload[0].value)}</span>
+      <div className="glass-card px-3 py-2 text-sm font-semibold text-stone-900 dark:text-stone-100 shadow-md">
+        ${fmtBig(payload[0].value)}
       </div>
     )
   }
+
   return (
     <ResponsiveContainer width="100%" height={200}>
-      <AreaChart data={data} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+      <AreaChart data={data} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
         <defs>
           <linearGradient id="pvGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
-            <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+            <stop offset="0%" stopColor="#0284C7" stopOpacity={0.25} />
+            <stop offset="100%" stopColor="#0284C7" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid stroke="#1e1e3a" strokeDasharray="4 4" />
+        <CartesianGrid stroke="var(--color-border-default)" strokeDasharray="4 4" />
         <XAxis dataKey="date" hide />
         <YAxis hide domain={['auto', 'auto']} />
         <Tooltip content={<CustomTooltip />} />
-        <Area type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2} fill="url(#pvGrad)" dot={false} />
+        <Area type="monotone" dataKey="value" stroke="#0284C7" strokeWidth={2} fill="url(#pvGrad)" dot={false} />
       </AreaChart>
     </ResponsiveContainer>
   )
@@ -113,7 +123,10 @@ export function DashboardPage() {
   const { profile, dna } = useAuth()
   const navigate = useNavigate()
   const { holdings: dbHoldings, loading: holdingsLoading } = usePortfolio()
-  const { items: watchlistItems, loading: watchlistLoading, addItem: addWatchlistItem, removeItem: removeWatchlistItem } = useWatchlist()
+  const {
+    items: watchlistItems, loading: watchlistLoading,
+    addItem: addWatchlistItem, removeItem: removeWatchlistItem,
+  } = useWatchlist()
 
   const [liveQuotes, setLiveQuotes] = useState<Record<string, FinnhubQuote>>({})
   const [showWatchlistAdd, setShowWatchlistAdd] = useState(false)
@@ -121,7 +134,6 @@ export function DashboardPage() {
   const [watchlistAddError, setWatchlistAddError] = useState<string | null>(null)
   const watchlistInputRef = useRef<HTMLInputElement>(null)
 
-  // Collect all tickers (holdings + watchlist) for a single bulk quote fetch
   const allTickers = useMemo(() => {
     const h = dbHoldings.map(h => h.ticker)
     const w = watchlistItems.map(i => i.ticker)
@@ -139,7 +151,6 @@ export function DashboardPage() {
     if (showWatchlistAdd) watchlistInputRef.current?.focus()
   }, [showWatchlistAdd])
 
-  // Compute portfolio metrics from real holdings
   const portfolioMetrics = useMemo(() => {
     if (dbHoldings.length === 0) return null
     const rows = dbHoldings.map(h => {
@@ -148,12 +159,11 @@ export function DashboardPage() {
       return { ...h, currentPrice: price }
     })
     const totalValue = rows.reduce((s, h) => s + h.currentPrice * h.shares, 0)
-    const totalCost = rows.reduce((s, h) => s + h.cost_basis * h.shares, 0)
+    const totalCost  = rows.reduce((s, h) => s + h.cost_basis * h.shares, 0)
     const lifetimeReturn = totalCost > 0 ? (totalValue - totalCost) / totalCost : 0
     return { totalValue, totalCost, lifetimeReturn, rows }
   }, [dbHoldings, liveQuotes])
 
-  // Holdings display (up to 5, merged with live prices)
   const holdingsDisplay = useMemo(() => {
     if (!portfolioMetrics) return []
     const { rows, totalValue } = portfolioMetrics
@@ -180,217 +190,324 @@ export function DashboardPage() {
     }
   }
 
+  const firstName = profile?.full_name?.split(' ')[0] ?? 'Investor'
+
   return (
-    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
-      {/* Header */}
+    <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
+
+      {/* ── Header ───────────────────────────────────────────────────────────── */}
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
+        initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex items-start justify-between gap-4"
       >
         <div>
-          <h1 className="text-2xl font-bold text-[#f1f5f9]">
-            Good morning, {profile?.full_name?.split(' ')[0] ?? 'Investor'}
+          <h1 className="text-3xl font-bold text-stone-900 dark:text-stone-50 leading-tight">
+            Good morning, {firstName}
           </h1>
-          <p className="text-[#64748b] text-sm mt-0.5">
-            {dna ? 'Your personalized investment dashboard' : 'Complete your Investor DNA to personalize this dashboard'}
+          <p className="text-base text-stone-500 dark:text-stone-400 mt-1">
+            {dna
+              ? 'Your personalized investment dashboard'
+              : 'Complete your Investor DNA to personalise this view'}
           </p>
         </div>
-        <Button variant="secondary" size="sm" onClick={() => navigate('/portfolio')}>
-          <Plus className="w-3.5 h-3.5" />
+        <Button variant="secondary" size="md" onClick={() => navigate('/portfolio')}>
+          <Plus className="w-4 h-4" />
           Add holding
         </Button>
       </motion.div>
 
-      {/* DNA Banner */}
-      {dna && <DnaCard />}
+      {/* ── DNA Banner ───────────────────────────────────────────────────────── */}
+      {dna ? (
+        <DnaCard />
+      ) : (
+        <Card className="border-dashed border-2 border-stone-300 dark:border-stone-700 bg-transparent">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center flex-shrink-0">
+              <Dna className="w-6 h-6 text-stone-400 dark:text-stone-500" />
+            </div>
+            <div className="flex-1">
+              <p className="text-base font-semibold text-stone-900 dark:text-stone-100">
+                Set up your Investor DNA
+              </p>
+              <p className="text-sm text-stone-500 dark:text-stone-400 mt-0.5">
+                Get personalised stock picks, risk analysis, and portfolio advice.
+              </p>
+            </div>
+            <Button variant="primary" size="md" onClick={() => navigate('/dna')}>
+              Get started
+            </Button>
+          </div>
+        </Card>
+      )}
 
-      {/* Portfolio value */}
+      {/* ── Portfolio Overview ───────────────────────────────────────────────── */}
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05 }}
-        className="glass-card p-5"
       >
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <p className="text-xs text-[#64748b] uppercase tracking-wider mb-1">Total Portfolio Value</p>
-            {holdingsLoading ? (
-              <div className="h-10 w-40 bg-[#1e1e3a] rounded animate-pulse mt-1" />
-            ) : portfolioMetrics ? (
-              <>
-                <p className="text-4xl font-bold text-[#f1f5f9]">${fmtBig(portfolioMetrics.totalValue)}</p>
-                <p className={`text-sm mt-1 ${portfolioMetrics.lifetimeReturn >= 0 ? 'text-[#10b981]' : 'text-[#ef4444]'}`}>
-                  {portfolioMetrics.lifetimeReturn >= 0 ? '▲' : '▼'} {Math.abs(portfolioMetrics.lifetimeReturn * 100).toFixed(2)}%
-                  {' '}({portfolioMetrics.lifetimeReturn >= 0 ? '+' : ''}${fmtBig(Math.abs(portfolioMetrics.totalValue - portfolioMetrics.totalCost))}) all-time
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-4xl font-bold text-[#f1f5f9]">$0.00</p>
-                <p className="text-sm mt-1 text-[#475569]">Add holdings to track your portfolio value</p>
-              </>
-            )}
+        <Card padding="lg">
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <p className="text-sm font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-2">
+                Total Portfolio Value
+              </p>
+              {holdingsLoading ? (
+                <div className="h-12 w-48 bg-stone-100 dark:bg-stone-800 rounded-lg animate-pulse mt-1" />
+              ) : portfolioMetrics ? (
+                <>
+                  <p className="text-4xl font-bold text-stone-900 dark:text-stone-50 leading-none">
+                    ${fmtBig(portfolioMetrics.totalValue)}
+                  </p>
+                  <p className={cn(
+                    'text-base mt-2 font-medium flex items-center gap-1',
+                    portfolioMetrics.lifetimeReturn >= 0
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-red-600 dark:text-red-400',
+                  )}>
+                    {portfolioMetrics.lifetimeReturn >= 0
+                      ? <ArrowUpRight className="w-4 h-4" />
+                      : <ArrowDownRight className="w-4 h-4" />
+                    }
+                    {Math.abs(portfolioMetrics.lifetimeReturn * 100).toFixed(2)}%
+                    {' '}(
+                      {portfolioMetrics.lifetimeReturn >= 0 ? '+' : '-'}
+                      ${fmtBig(Math.abs(portfolioMetrics.totalValue - portfolioMetrics.totalCost))}
+                    ) all-time
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-4xl font-bold text-stone-900 dark:text-stone-50 leading-none">$0.00</p>
+                  <p className="text-sm mt-2 text-stone-400 dark:text-stone-500">
+                    Add holdings to track your portfolio value
+                  </p>
+                </>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="default">
+                {dbHoldings.length} position{dbHoldings.length !== 1 ? 's' : ''}
+              </Badge>
+            </div>
           </div>
-        </div>
-        <PortfolioChart />
+          <PortfolioChart />
+        </Card>
       </motion.div>
 
-      {/* Middle row: Holdings + Sector + Scores */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* ── Quick Metrics ────────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <MetricCard
+          label="Invested"
+          value={portfolioMetrics ? `$${fmtBig(portfolioMetrics.totalCost)}` : '$0'}
+        />
+        <MetricCard
+          label="Gain / Loss"
+          value={portfolioMetrics
+            ? `${portfolioMetrics.lifetimeReturn >= 0 ? '+' : ''}${(portfolioMetrics.lifetimeReturn * 100).toFixed(2)}%`
+            : '—'}
+          delta={portfolioMetrics
+            ? `${portfolioMetrics.lifetimeReturn >= 0 ? '+' : ''}$${fmtBig(Math.abs(portfolioMetrics.totalValue - portfolioMetrics.totalCost))}`
+            : undefined}
+        />
+        <MetricCard
+          label="Positions"
+          value={`${dbHoldings.length}`}
+          subvalue={dbHoldings.length > 0 ? 'across your portfolio' : 'No positions yet'}
+          className="hidden md:block"
+        />
+      </div>
+
+      {/* ── Holdings + Watchlist ─────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
         {/* Holdings */}
-        <div className="lg:col-span-2 glass-card p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-[#f1f5f9]">Holdings</h3>
+        <Card padding="md">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2">
+              <Briefcase className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+              <h3 className="text-base font-semibold text-stone-900 dark:text-stone-100">Holdings</h3>
+            </div>
             <Link to="/portfolio">
               <Button variant="ghost" size="sm">
-                View all <ChevronRight className="w-3 h-3" />
+                View all <ChevronRight className="w-3.5 h-3.5" />
               </Button>
             </Link>
           </div>
+
           {holdingsLoading ? (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-12 rounded-[8px] bg-[#0f0f1a] animate-pulse" />
+                <div key={i} className="h-14 rounded-xl bg-stone-100 dark:bg-stone-800 animate-pulse" />
               ))}
             </div>
           ) : holdingsDisplay.length === 0 ? (
-            <div className="text-center py-8">
-              <Briefcase className="w-8 h-8 text-[#334155] mx-auto mb-2" />
-              <p className="text-sm text-[#64748b]">No holdings yet</p>
-              <Button variant="ghost" size="sm" className="mt-2" onClick={() => navigate('/portfolio')}>
+            <div className="text-center py-10">
+              <div className="w-12 h-12 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center mx-auto mb-3">
+                <Briefcase className="w-6 h-6 text-stone-400 dark:text-stone-500" />
+              </div>
+              <p className="text-base font-medium text-stone-700 dark:text-stone-300">No holdings yet</p>
+              <p className="text-sm text-stone-400 dark:text-stone-500 mt-1">Add stocks to start tracking your portfolio</p>
+              <Button variant="primary" size="md" className="mt-4" onClick={() => navigate('/portfolio')}>
                 Add your first holding
               </Button>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-1">
               {holdingsDisplay.map(h => (
-                <div key={h.id} className="flex items-center gap-3 p-2.5 rounded-[8px] hover:bg-[#0f0f1a] transition-colors cursor-pointer">
-                  <div className="w-8 h-8 rounded-[8px] bg-[rgba(59,130,246,0.1)] flex items-center justify-center flex-shrink-0">
-                    <span className="text-xs font-bold text-[#3b82f6]">{h.ticker.charAt(0)}</span>
+                <div
+                  key={h.id}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors cursor-pointer"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center flex-shrink-0">
+                    <span className="text-xs font-bold text-sky-600 dark:text-sky-400">
+                      {h.ticker.charAt(0)}
+                    </span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-[#f1f5f9]">{h.ticker}</span>
-                    </div>
-                    <p className="text-xs text-[#64748b] truncate">{h.name ?? h.ticker}</p>
+                    <p className="text-sm font-semibold text-stone-900 dark:text-stone-100">{h.ticker}</p>
+                    <p className="text-xs text-stone-400 dark:text-stone-500 truncate">{h.name ?? h.ticker}</p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-sm font-medium text-[#f1f5f9]">${fmt(h.currentPrice)}</p>
-                    <p className={`text-xs ${h.change >= 0 ? 'text-[#10b981]' : 'text-[#ef4444]'}`}>
-                      {h.change >= 0 ? '▲' : '▼'} {Math.abs(h.change).toFixed(2)}%
+                    <p className="text-sm font-semibold text-stone-900 dark:text-stone-100">
+                      ${fmt(h.currentPrice)}
+                    </p>
+                    <p className={cn(
+                      'text-xs font-medium flex items-center gap-0.5 justify-end',
+                      h.change >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400',
+                    )}>
+                      {h.change >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                      {Math.abs(h.change).toFixed(2)}%
                     </p>
                   </div>
-                  <div className="text-right flex-shrink-0 w-20">
-                    <p className="text-sm font-medium text-[#f1f5f9]">${fmtBig(h.currentPrice * h.shares)}</p>
-                    <p className="text-xs text-[#64748b]">{(h.weight * 100).toFixed(1)}%</p>
+                  <div className="text-right flex-shrink-0 w-20 hidden sm:block">
+                    <p className="text-sm font-semibold text-stone-900 dark:text-stone-100">
+                      ${fmtBig(h.currentPrice * h.shares)}
+                    </p>
+                    <p className="text-xs text-stone-400 dark:text-stone-500">
+                      {(h.weight * 100).toFixed(1)}%
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
           )}
-        </div>
+        </Card>
 
-        {/* Scores */}
-        <div className="space-y-4">
-          <div className="glass-card p-5">
-            <h3 className="font-semibold text-[#f1f5f9] mb-4 flex items-center gap-2">
-              <Shield className="w-4 h-4 text-[#10b981]" />
-              Portfolio Health
-            </h3>
-            <div className="flex justify-around">
-              <ScoreRing score={profile?.investor_score ?? 76} size={72} label="Overall" />
-              <ScoreRing score={profile?.portfolio_health_score ?? 81} size={72} label="Health" />
-              <ScoreRing score={profile?.risk_management_score ?? 68} size={72} label="Risk" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Watchlist + News */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Watchlist */}
-        <div className="glass-card p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-[#f1f5f9] flex items-center gap-2">
-              <Eye className="w-4 h-4 text-[#06b6d4]" />
-              Watchlist
-            </h3>
+        <Card padding="md">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2">
+              <Eye className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+              <h3 className="text-base font-semibold text-stone-900 dark:text-stone-100">Watchlist</h3>
+            </div>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => { setShowWatchlistAdd(s => !s); setWatchlistAddError(null); setWatchlistInput('') }}
+              onClick={() => {
+                setShowWatchlistAdd(s => !s)
+                setWatchlistAddError(null)
+                setWatchlistInput('')
+              }}
             >
-              <Plus className="w-3 h-3" />
+              <Plus className="w-3.5 h-3.5" />
               Add
             </Button>
           </div>
 
-          {/* Inline add input */}
           {showWatchlistAdd && (
-            <div className="mb-3 flex gap-2">
+            <div className="mb-4 flex gap-2">
               <input
                 ref={watchlistInputRef}
                 type="text"
                 placeholder="Ticker (e.g. TSLA)"
                 value={watchlistInput}
                 onChange={e => setWatchlistInput(e.target.value.toUpperCase())}
-                onKeyDown={e => { if (e.key === 'Enter') handleAddWatchlistItem(); if (e.key === 'Escape') setShowWatchlistAdd(false) }}
-                className="flex-1 px-3 py-1.5 rounded-[8px] text-sm bg-[#0f0f1a] border border-[#1e1e3a] text-[#f1f5f9] placeholder-[#475569] focus:outline-none focus:border-[#3b82f6]"
+                onKeyDown={e => {
+                  if (e.key === 'Enter') handleAddWatchlistItem()
+                  if (e.key === 'Escape') setShowWatchlistAdd(false)
+                }}
+                className={cn(
+                  'flex-1 px-3 py-2 rounded-xl text-sm border transition-all duration-200',
+                  'bg-white border-stone-200 text-stone-900 placeholder-stone-400',
+                  'focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20',
+                  'dark:bg-stone-800 dark:border-stone-700 dark:text-stone-100 dark:placeholder-stone-500',
+                )}
               />
               <Button size="sm" onClick={handleAddWatchlistItem}>Add</Button>
-              <button onClick={() => setShowWatchlistAdd(false)} className="p-1.5 text-[#475569] hover:text-[#94a3b8] cursor-pointer">
+              <button
+                onClick={() => setShowWatchlistAdd(false)}
+                className="p-2 text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 cursor-pointer transition-colors"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
           )}
           {watchlistAddError && (
-            <p className="text-xs text-[#ef4444] mb-2">{watchlistAddError}</p>
+            <p className="text-sm text-red-600 dark:text-red-400 mb-3">{watchlistAddError}</p>
           )}
 
           {watchlistLoading ? (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-10 rounded-[8px] bg-[#0f0f1a] animate-pulse" />
+                <div key={i} className="h-12 rounded-xl bg-stone-100 dark:bg-stone-800 animate-pulse" />
               ))}
             </div>
           ) : watchlistItems.length === 0 ? (
-            <div className="text-center py-6">
-              <Eye className="w-7 h-7 text-[#334155] mx-auto mb-2" />
-              <p className="text-sm text-[#64748b]">Your watchlist is empty</p>
-              <p className="text-xs text-[#475569] mt-0.5">Add tickers to monitor their prices</p>
+            <div className="text-center py-10">
+              <div className="w-12 h-12 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center mx-auto mb-3">
+                <Eye className="w-6 h-6 text-stone-400 dark:text-stone-500" />
+              </div>
+              <p className="text-base font-medium text-stone-700 dark:text-stone-300">Watchlist is empty</p>
+              <p className="text-sm text-stone-400 dark:text-stone-500 mt-1">
+                Add tickers to monitor their prices
+              </p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-1">
               {watchlistItems.map(item => {
                 const q = liveQuotes[item.ticker]
                 const price = q?.c ?? null
                 const change = q?.dp ?? null
                 return (
-                  <div key={item.id} className="flex items-center gap-3 p-2.5 rounded-[8px] hover:bg-[#0f0f1a] cursor-pointer transition-colors group">
+                  <div
+                    key={item.id}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors cursor-pointer group"
+                  >
                     <div className="flex-1 min-w-0">
-                      <span className="text-sm font-medium text-[#f1f5f9]">{item.ticker}</span>
-                      {item.name && <p className="text-xs text-[#64748b] truncate">{item.name}</p>}
+                      <p className="text-sm font-semibold text-stone-900 dark:text-stone-100">{item.ticker}</p>
+                      {item.name && (
+                        <p className="text-xs text-stone-400 dark:text-stone-500 truncate">{item.name}</p>
+                      )}
                     </div>
                     <div className="text-right flex-shrink-0">
                       {price != null ? (
                         <>
-                          <p className="text-sm font-medium text-[#f1f5f9]">${fmt(price)}</p>
+                          <p className="text-sm font-semibold text-stone-900 dark:text-stone-100">
+                            ${fmt(price)}
+                          </p>
                           {change != null && (
-                            <p className={`text-xs flex items-center gap-0.5 justify-end ${change >= 0 ? 'text-[#10b981]' : 'text-[#ef4444]'}`}>
-                              {change >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                            <p className={cn(
+                              'text-xs font-medium flex items-center gap-0.5 justify-end',
+                              change >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400',
+                            )}>
+                              {change >= 0
+                                ? <ArrowUpRight className="w-3 h-3" />
+                                : <ArrowDownRight className="w-3 h-3" />
+                              }
                               {Math.abs(change).toFixed(2)}%
                             </p>
                           )}
                         </>
                       ) : (
-                        <p className="text-sm text-[#475569]">Loading…</p>
+                        <p className="text-sm text-stone-400 dark:text-stone-500">Loading…</p>
                       )}
                     </div>
                     <button
                       onClick={e => { e.stopPropagation(); removeWatchlistItem(item.id) }}
-                      className="opacity-0 group-hover:opacity-100 p-1 text-[#334155] hover:text-[#ef4444] transition-all cursor-pointer"
-                      title="Remove from watchlist"
+                      aria-label={`Remove ${item.ticker} from watchlist`}
+                      className="opacity-0 group-hover:opacity-100 p-1.5 text-stone-300 hover:text-red-500 dark:text-stone-600 dark:hover:text-red-400 transition-all cursor-pointer rounded-lg"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -399,42 +516,100 @@ export function DashboardPage() {
               })}
             </div>
           )}
-        </div>
+        </Card>
+      </div>
+
+      {/* ── Portfolio Health + News ───────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* Health scores */}
+        <Card padding="md">
+          <div className="flex items-center gap-2 mb-5">
+            <Shield className="w-5 h-5 text-green-600 dark:text-green-400" />
+            <h3 className="text-base font-semibold text-stone-900 dark:text-stone-100">Portfolio Health</h3>
+          </div>
+          <div className="flex justify-around gap-4">
+            <ScoreRing score={profile?.investor_score ?? 76} size={80} label="Overall" />
+            <ScoreRing score={profile?.portfolio_health_score ?? 81} size={80} label="Health" />
+            <ScoreRing score={profile?.risk_management_score ?? 68} size={80} label="Risk" />
+          </div>
+          <p className="text-xs text-center text-stone-400 dark:text-stone-500 mt-4">
+            Based on your current portfolio composition
+          </p>
+        </Card>
 
         {/* News */}
-        <div className="glass-card p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-[#f1f5f9] flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-[#f59e0b]" />
-              News Intelligence
-            </h3>
-            <Badge variant="warning">Plus</Badge>
-          </div>
-          <div className="space-y-3">
-            {MOCK_NEWS.map(item => {
-              const s = SENTIMENT_STYLES[item.sentiment]
-              return (
-                <div key={item.id} className="rounded-[10px] p-3" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <p className="text-sm text-[#f1f5f9] font-medium leading-snug">{item.headline}</p>
-                    <div className="flex-shrink-0 flex flex-col items-end gap-1">
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: s.border + '40', color: s.color }}>
-                        {s.label}
-                      </span>
-                      <span className="text-[10px] text-[#64748b]">Score: {item.importanceScore}/10</span>
+        <div className="lg:col-span-2">
+          <Card padding="md">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                <h3 className="text-base font-semibold text-stone-900 dark:text-stone-100">News Intelligence</h3>
+              </div>
+              <Badge variant="warning">Plus</Badge>
+            </div>
+            <div className="space-y-3">
+              {MOCK_NEWS.map(item => {
+                const isPositive = item.sentiment === 'bullish'
+                const isNegative = item.sentiment === 'bearish'
+                return (
+                  <div
+                    key={item.id}
+                    className={cn(
+                      'rounded-xl p-4 border',
+                      isPositive && 'bg-green-50 border-green-200 dark:bg-green-900/10 dark:border-green-800',
+                      isNegative && 'bg-red-50 border-red-200 dark:bg-red-900/10 dark:border-red-800',
+                      !isPositive && !isNegative && 'bg-amber-50 border-amber-200 dark:bg-amber-900/10 dark:border-amber-800',
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <p className="text-sm font-semibold text-stone-900 dark:text-stone-100 leading-snug flex-1">
+                        {item.headline}
+                      </p>
+                      <Badge
+                        variant={isPositive ? 'success' : isNegative ? 'error' : 'warning'}
+                        size="sm"
+                      >
+                        {item.sentiment}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-stone-500 dark:text-stone-400 leading-relaxed">
+                      {item.summary}
+                    </p>
+                    <div className="flex items-center gap-3 mt-2 text-xs text-stone-400 dark:text-stone-500">
+                      <span>{item.source}</span>
+                      <span>·</span>
+                      <span>{item.timestamp}</span>
+                      <Badge variant="ghost" className="text-xs">{item.ticker}</Badge>
                     </div>
                   </div>
-                  <p className="text-xs text-[#64748b]">{item.summary}</p>
-                  <div className="flex items-center gap-3 mt-2 text-[10px] text-[#64748b]">
-                    <span>{item.source}</span>
-                    <span>{item.timestamp}</span>
-                    <Badge variant="ghost">{item.ticker}</Badge>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+                )
+              })}
+            </div>
+          </Card>
         </div>
+      </div>
+
+      {/* ── Quick Links ──────────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { label: 'Build Portfolio', desc: 'AI-powered picks', icon: TrendingUp, to: '/portfolio', color: 'text-sky-600 dark:text-sky-400', bg: 'bg-sky-50 dark:bg-sky-900/20' },
+          { label: 'Analyze Stock', desc: 'Deep fundamentals', icon: BarChart3, to: '/analyze', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/20' },
+          { label: 'Life Goals', desc: 'Plan your future', icon: Shield, to: '/goals', color: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-900/20' },
+          { label: 'Academy', desc: 'Learn investing', icon: BookOpen, to: '/academy', color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-900/20' },
+        ].map(link => (
+          <Link
+            key={link.to}
+            to={link.to}
+            className="glass-card p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group"
+          >
+            <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center mb-3', link.bg)}>
+              <link.icon className={cn('w-5 h-5', link.color)} />
+            </div>
+            <p className="text-sm font-semibold text-stone-900 dark:text-stone-100">{link.label}</p>
+            <p className="text-xs text-stone-400 dark:text-stone-500 mt-0.5">{link.desc}</p>
+          </Link>
+        ))}
       </div>
     </div>
   )
