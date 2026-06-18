@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Trash2, TrendingUp, TriangleAlert, CircleCheck as CheckCircle, Info, Briefcase, RefreshCw } from 'lucide-react'
+import { Plus, Trash2, TrendingUp, TriangleAlert, CircleCheck as CheckCircle, Info, Briefcase, RefreshCw, Wand2 } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, RadarChart, Radar, PolarGrid,
@@ -8,9 +8,12 @@ import {
 } from 'recharts'
 import { Card, MetricCard, Button, Input, Badge, ProgressBar, DataTable, PremiumLock } from '@/components/ui'
 import { MOCK_STRESS_TESTS } from '@/data/mock'
-import { fmtBig, fmtPct, fmt, cn } from '@/lib/utils'
+import { fmtBig, fmtPct, fmt, cn, toDnaInput } from '@/lib/utils'
 import { fetchBulkQuotes, type FinnhubQuote } from '@/lib/market-data'
 import { usePortfolio } from '@/hooks/usePortfolio'
+import { useAuth } from '@/context/AuthContext'
+import { PortfolioBuilder } from '@/components/PortfolioBuilder'
+import { computeDnaProfile } from '@/lib/dna-engine'
 
 const RADAR_DATA = [
   { metric: 'Growth', value: 78 },
@@ -22,7 +25,15 @@ const RADAR_DATA = [
 ]
 
 export function PortfolioPage() {
+  const { dna } = useAuth()
   const { holdings: dbHoldings, loading: holdingsLoading, addHolding, deleteHolding } = usePortfolio()
+
+  const dnaInput = useMemo(() => dna ? toDnaInput(dna) : null, [dna])
+  const riskScore = useMemo(() => {
+    if (!dnaInput) return 50
+    const profile = computeDnaProfile(dnaInput)
+    return profile.riskScore
+  }, [dnaInput])
 
   const [showAddHolding, setShowAddHolding] = useState(false)
   const [newTicker, setNewTicker] = useState('')
@@ -30,7 +41,7 @@ export function PortfolioPage() {
   const [newCost, setNewCost] = useState('')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'holdings' | 'doctor' | 'stress'>('holdings')
+  const [activeTab, setActiveTab] = useState<'holdings' | 'doctor' | 'stress' | 'build'>('holdings')
 
   const [liveQuotes, setLiveQuotes] = useState<Record<string, FinnhubQuote> | null>(null)
   const [quotesLoading, setQuotesLoading] = useState(false)
@@ -121,6 +132,7 @@ export function PortfolioPage() {
     { key: 'holdings', label: 'Holdings' },
     { key: 'doctor', label: 'Portfolio Doctor' },
     { key: 'stress', label: 'Stress Test', tier: 'pro' },
+    { key: 'build', label: 'Build My Portfolio', icon: Wand2 },
   ] as const
 
   return (
@@ -168,15 +180,25 @@ export function PortfolioPage() {
             <div key={i} className="h-20 rounded-[14px] bg-[#0f0f1a] animate-pulse" />
           ))}
         </div>
-      ) : holdings.length === 0 && !showAddHolding ? (
-        <div className="glass-card p-10 text-center">
+      ) : holdings.length === 0 && !showAddHolding && activeTab !== 'build' ? (
+        <div className="glass-card p-8 text-center">
           <Briefcase className="w-10 h-10 text-[#334155] mx-auto mb-3" />
           <p className="text-[#94a3b8] font-medium mb-1">No holdings yet</p>
-          <p className="text-sm text-[#475569] mb-4">Add your first holding to start tracking your portfolio</p>
-          <Button onClick={() => setShowAddHolding(true)} size="sm">
-            <Plus className="w-3.5 h-3.5" />
-            Add your first holding
-          </Button>
+          <p className="text-sm text-[#475569] mb-5">Add positions manually, or let us build a portfolio for you.</p>
+          <div className="flex gap-3 justify-center flex-wrap">
+            <Button onClick={() => setShowAddHolding(true)} size="sm" variant="secondary">
+              <Plus className="w-3.5 h-3.5" />
+              Add manually
+            </Button>
+            <Button
+              onClick={() => setActiveTab('build')}
+              size="sm"
+              className="bg-[#8b5cf6] hover:bg-[#7c3aed] border-[#8b5cf6]"
+            >
+              <Wand2 className="w-3.5 h-3.5" />
+              Build my portfolio
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -237,8 +259,8 @@ export function PortfolioPage() {
         </motion.div>
       )}
 
-      {/* Only show tabs and content when there are holdings */}
-      {holdings.length > 0 && (
+      {/* Tabs — always visible once data loaded (Build tab works even with no holdings) */}
+      {!holdingsLoading && (holdings.length > 0 || activeTab === 'build') && (
         <>
           {/* Tabs */}
           <div className="flex gap-1 p-1 rounded-[12px] bg-[#0f0f1a] border border-[#1e1e3a] w-fit">
@@ -249,10 +271,11 @@ export function PortfolioPage() {
                 className={cn(
                   'px-4 py-2 rounded-[8px] text-sm font-medium transition-all duration-200 cursor-pointer flex items-center gap-1.5',
                   activeTab === tab.key
-                    ? 'bg-[#3b82f6] text-white'
+                    ? tab.key === 'build' ? 'bg-[#8b5cf6] text-white' : 'bg-[#3b82f6] text-white'
                     : 'text-[#64748b] hover:text-[#94a3b8]',
                 )}
               >
+                {'icon' in tab && tab.icon && <tab.icon className="w-3.5 h-3.5" />}
                 {tab.label}
                 {'tier' in tab && <Badge variant="warning" size="sm">{tab.tier}</Badge>}
               </button>
@@ -440,8 +463,19 @@ export function PortfolioPage() {
               </div>
             </PremiumLock>
           )}
+
+          {/* Build Portfolio tab */}
+          {activeTab === 'build' && (
+            <PortfolioBuilder
+              dna={dnaInput}
+              riskScore={riskScore}
+              addHolding={addHolding}
+              onDone={() => setActiveTab('holdings')}
+            />
+          )}
         </>
       )}
+
     </div>
   )
 }
