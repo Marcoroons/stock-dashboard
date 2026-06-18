@@ -6,10 +6,12 @@ import { AlertsProvider } from '@/context/AlertsContext'
 import { NotificationProvider } from '@/components/ui/Toast'
 import { ModalProvider } from '@/components/ui/Modal'
 import { SubscriptionProvider } from '@/context/SubscriptionContext'
+import { LandingPage } from '@/pages/LandingPage'
 import { AuthPage } from '@/pages/AuthPage'
-import { OnboardingPage } from '@/pages/OnboardingPage'
+import { AssessmentPage } from '@/pages/AssessmentPage'
+import { ConclusionPage } from '@/pages/ConclusionPage'
 import { DisclaimerPage } from '@/pages/DisclaimerPage'
-import { Tutorial } from '@/components/ui/Tutorial'
+import { ProductTour } from '@/components/ui/ProductTour'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { PortfolioPage } from '@/pages/PortfolioPage'
@@ -30,15 +32,22 @@ import { LoadingSpinner } from '@/components/ui/Skeleton'
 function AppRoutes() {
   const { user, dna, loading } = useAuth()
 
+  // Pre-auth view: landing page or auth form
+  const [authView, setAuthView]           = useState<'landing' | 'auth'>('landing')
+  // Post-auth gates
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false)
   const [dnaSkipped, setDnaSkipped]                 = useState(false)
-  const [tutorialDone, setTutorialDone]             = useState(false)
+  const [conclusionSeen, setConclusionSeen]         = useState(false)
+  const [tourDone, setTourDone]                     = useState(false)
+  // After conclusion user can jump straight to pricing
+  const [goToPricing, setGoToPricing]               = useState(false)
 
   useEffect(() => {
     if (!user) return
     setDisclaimerAccepted(localStorage.getItem(`disclaimer_${user.id}`) === '1')
     setDnaSkipped(localStorage.getItem(`dna_skip_${user.id}`) === '1')
-    setTutorialDone(localStorage.getItem(`tutorial_done_${user.id}`) === '1')
+    setConclusionSeen(localStorage.getItem(`conclusion_seen_${user.id}`) === '1')
+    setTourDone(localStorage.getItem(`tutorial_done_${user.id}`) === '1')
   }, [user?.id])
 
   function acceptDisclaimer() {
@@ -53,10 +62,16 @@ function AppRoutes() {
     setDnaSkipped(true)
   }
 
-  function completeTutorial() {
+  function markConclusionSeen() {
+    if (!user) return
+    localStorage.setItem(`conclusion_seen_${user.id}`, '1')
+    setConclusionSeen(true)
+  }
+
+  function completeTour() {
     if (!user) return
     localStorage.setItem(`tutorial_done_${user.id}`, '1')
-    setTutorialDone(true)
+    setTourDone(true)
   }
 
   if (loading) {
@@ -70,35 +85,70 @@ function AppRoutes() {
     )
   }
 
-  if (!user) return <AuthPage />
-  if (!disclaimerAccepted) return <DisclaimerPage onAccept={acceptDisclaimer} />
-  if (!dna && !dnaSkipped) return <OnboardingPage onSkip={skipDna} />
+  // ── Not authenticated ───────────────────────────────────────────────────────
+  if (!user) {
+    if (authView === 'landing') {
+      return (
+        <LandingPage
+          onGetStarted={() => setAuthView('auth')}
+          onLogin={() => setAuthView('auth')}
+        />
+      )
+    }
+    return <AuthPage />
+  }
 
+  // ── Post-auth gates ─────────────────────────────────────────────────────────
+  if (!disclaimerAccepted) return <DisclaimerPage onAccept={acceptDisclaimer} />
+
+  if (!dna && !dnaSkipped) {
+    return (
+      <AssessmentPage
+        onSkip={skipDna}
+        onComplete={async () => {
+          // refreshDna is called inside AssessmentPage; this callback is a no-op signal
+        }}
+      />
+    )
+  }
+
+  if (dna && !conclusionSeen && !dnaSkipped) {
+    return (
+      <ConclusionPage
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        dna={dna as any}
+        onContinue={markConclusionSeen}
+        onViewPricing={() => { markConclusionSeen(); setGoToPricing(true) }}
+      />
+    )
+  }
+
+  // ── Main app ────────────────────────────────────────────────────────────────
   return (
     <AlertsProvider>
       <SubscriptionProvider>
         <Routes>
           <Route path="/" element={<AppLayout />}>
-            <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="portfolio" element={<PortfolioPage />} />
-            <Route path="analyze" element={<AnalyzePage />} />
-            <Route path="dna" element={<DnaProfilePage />} />
-            <Route path="doctor" element={<PortfolioDoctorPage />} />
-            <Route path="funds" element={<FundAnalysisPage />} />
-            <Route path="news" element={<NewsPage />} />
+            <Route index element={<Navigate to={goToPricing ? '/pricing' : '/dashboard'} replace />} />
+            <Route path="dashboard"    element={<DashboardPage />} />
+            <Route path="portfolio"    element={<PortfolioPage />} />
+            <Route path="analyze"      element={<AnalyzePage />} />
+            <Route path="dna"          element={<DnaProfilePage />} />
+            <Route path="doctor"       element={<PortfolioDoctorPage />} />
+            <Route path="funds"        element={<FundAnalysisPage />} />
+            <Route path="news"         element={<NewsPage />} />
             <Route path="opportunities" element={<OpportunitiesPage />} />
-            <Route path="goals" element={<GoalsPage />} />
-            <Route path="alerts" element={<AlertsPage />} />
-            <Route path="stress-test" element={<StressTestPage />} />
-            <Route path="pricing" element={<PricingPage />} />
-            <Route path="admin" element={<AdminPage />} />
-            <Route path="academy" element={<AcademyPage />} />
-            <Route path="settings" element={<SettingsPage />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="goals"        element={<GoalsPage />} />
+            <Route path="alerts"       element={<AlertsPage />} />
+            <Route path="stress-test"  element={<StressTestPage />} />
+            <Route path="pricing"      element={<PricingPage />} />
+            <Route path="admin"        element={<AdminPage />} />
+            <Route path="academy"      element={<AcademyPage />} />
+            <Route path="settings"     element={<SettingsPage />} />
+            <Route path="*"            element={<Navigate to="/dashboard" replace />} />
           </Route>
         </Routes>
-        {!tutorialDone && <Tutorial onComplete={completeTutorial} />}
+        {!tourDone && <ProductTour onComplete={completeTour} />}
       </SubscriptionProvider>
     </AlertsProvider>
   )
