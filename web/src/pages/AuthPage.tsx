@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Mail, Lock, User, Eye, EyeOff, TrendingUp, CheckCircle, ArrowLeft, ShieldCheck, BarChart3, Target } from 'lucide-react'
+import { Mail, Lock, User, Eye, EyeOff, CheckCircle, ArrowLeft, ShieldCheck, BarChart3, Target } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { Button, Input } from '@/components/ui'
+import { MadyLogo } from '@/components/ui/MadyLogo'
 import { cn } from '@/lib/utils'
 
 type Mode = 'signin' | 'signup' | 'email_sent'
@@ -64,7 +65,7 @@ export function AuthPage() {
   // ── Email confirmation screen ──────────────────────────────────────────────
   if (mode === 'email_sent') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-950 p-6">
+      <div className="min-h-screen flex items-center justify-center bg-[#F5F4F0] dark:bg-[#0A0A0A] p-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -74,44 +75,44 @@ export function AuthPage() {
             <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
           </div>
 
-          <h2 className="text-2xl font-bold text-stone-900 dark:text-stone-50 mb-3">
+          <h2 className="text-2xl font-bold text-[#0C0A09] dark:text-white mb-3">
             Check your email
           </h2>
-          <p className="text-base text-stone-500 dark:text-stone-400 leading-relaxed mb-2">
+          <p className="text-base text-[#0C0A09]/50 dark:text-white/45 leading-relaxed mb-2">
             We sent a confirmation link to
           </p>
-          <p className="text-base font-semibold text-stone-900 dark:text-stone-100 mb-6 break-all">
+          <p className="text-base font-semibold text-[#0C0A09] dark:text-white mb-6 break-all">
             {confirmedEmail}
           </p>
 
           <div className={cn(
             'rounded-2xl p-5 text-left mb-8 space-y-4',
-            'bg-white border border-stone-200 dark:bg-stone-900 dark:border-stone-800',
+            'bg-white border border-[#0C0A09]/10 dark:bg-[#111] dark:border-white/10',
           )}>
             {[
-              'Open the email from Investor Intelligence OS',
+              'Open the email from Mady Finance',
               'Click the "Confirm your account" link',
               "You'll be brought back here automatically",
             ].map((step, i) => (
               <div key={i} className="flex items-start gap-3">
                 <span className={cn(
                   'w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5',
-                  'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-400',
+                  'bg-[#0C0A09]/8 text-[#0C0A09]/70 dark:bg-white/8 dark:text-white/60',
                 )}>
                   {i + 1}
                 </span>
-                <p className="text-sm text-stone-600 dark:text-stone-300">{step}</p>
+                <p className="text-sm text-[#0C0A09]/55 dark:text-white/45">{step}</p>
               </div>
             ))}
           </div>
 
-          <p className="text-sm text-stone-400 dark:text-stone-500 mb-6">
-            Can't find it? Check your spam folder. The link expires in 24 hours.
+          <p className="text-sm text-[#0C0A09]/35 dark:text-white/30 mb-6">
+            Can&apos;t find it? Check your spam folder. The link expires in 24 hours.
           </p>
 
           <button
             onClick={() => { setMode('signin'); setError(null) }}
-            className="inline-flex items-center gap-2 text-sm text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-medium transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 text-sm text-[#0C0A09]/60 dark:text-white/50 hover:text-[#0C0A09] dark:hover:text-white font-medium transition-colors duration-200 cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             Back to sign in
@@ -123,42 +124,36 @@ export function AuthPage() {
 
   // ── Sign in / Sign up form ─────────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex bg-stone-50 dark:bg-stone-950">
+    <div className="min-h-screen flex bg-[#F5F4F0] dark:bg-[#0A0A0A]">
 
-      {/* Left panel — Brand hero */}
-      <div className={cn(
-        'hidden lg:flex flex-col justify-between w-[45%] p-12 relative overflow-hidden',
-        'bg-white dark:bg-stone-900 border-r border-stone-200 dark:border-stone-800',
-      )}>
-        {/* Subtle warm gradient background */}
+      {/* Left panel — always dark, brand hero */}
+      <div className="hidden lg:flex flex-col justify-between w-[45%] p-12 relative overflow-hidden bg-[#080808]">
+        {/* Subtle depth gradient */}
         <div
-          className="absolute inset-0 opacity-30 dark:opacity-20"
+          className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              'radial-gradient(ellipse at 20% 40%, rgba(2,132,199,0.15) 0%, transparent 60%),' +
-              'radial-gradient(ellipse at 80% 80%, rgba(8,145,178,0.12) 0%, transparent 50%)',
+              'radial-gradient(ellipse 70% 50% at 25% 50%, rgba(255,255,255,0.03) 0%, transparent 70%)',
           }}
         />
 
-        {/* Logo */}
+        {/* Logo + wordmark */}
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-16">
-            <div className="w-10 h-10 rounded-xl bg-sky-600 flex items-center justify-center shadow-md">
-              <TrendingUp className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-lg font-semibold text-stone-900 dark:text-stone-100">
-              Investor Intelligence OS
+            <MadyLogo className="w-9 h-9 text-white opacity-80" />
+            <span className="text-white/70 text-xs tracking-[0.22em] uppercase font-light">
+              Mady Finance
             </span>
           </div>
 
-          <h1 className="text-4xl font-bold text-stone-900 dark:text-stone-50 leading-tight mb-6">
+          <h1 className="text-4xl font-bold text-white leading-tight mb-6">
             Your personal
             <br />
-            <span className="gradient-text">investment</span>
+            <span className="text-white/50">investment</span>
             <br />
-            <span className="gradient-text">operating system</span>
+            <span className="text-white/50">operating system</span>
           </h1>
-          <p className="text-base text-stone-500 dark:text-stone-400 leading-relaxed">
+          <p className="text-base text-white/30 leading-relaxed">
             Institutional-grade analytics. Behavioural finance insights.
             Personalised to your investor profile.
           </p>
@@ -168,12 +163,12 @@ export function AuthPage() {
         <div className="relative z-10 space-y-4">
           {FEATURES.map(f => (
             <div key={f.title} className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-900/30 flex items-center justify-center flex-shrink-0">
-                <f.icon className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+              <div className="w-10 h-10 rounded-xl bg-white/[0.06] border border-white/8 flex items-center justify-center flex-shrink-0">
+                <f.icon className="w-5 h-5 text-white/55" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-stone-900 dark:text-stone-100">{f.title}</p>
-                <p className="text-sm text-stone-500 dark:text-stone-400 mt-0.5">{f.desc}</p>
+                <p className="text-sm font-semibold text-white/80">{f.title}</p>
+                <p className="text-sm text-white/35 mt-0.5">{f.desc}</p>
               </div>
             </div>
           ))}
@@ -181,7 +176,7 @@ export function AuthPage() {
       </div>
 
       {/* Right panel — Form */}
-      <div className="flex-1 flex items-center justify-center p-6 md:p-10">
+      <div className="flex-1 flex items-center justify-center p-6 md:p-10 bg-[#F5F4F0] dark:bg-[#0A0A0A]">
         <motion.div
           key={mode}
           initial={{ opacity: 0, y: 16 }}
@@ -190,19 +185,19 @@ export function AuthPage() {
           className="w-full max-w-md"
         >
           {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-2 mb-10 justify-center">
-            <div className="w-9 h-9 rounded-xl bg-sky-600 flex items-center justify-center">
-              <TrendingUp className="w-4 h-4 text-white" />
-            </div>
-            <span className="text-lg font-semibold text-stone-900 dark:text-stone-100">Investor OS</span>
+          <div className="lg:hidden flex items-center gap-2.5 mb-10 justify-center">
+            <MadyLogo className="w-8 h-8 text-[#0C0A09] dark:text-white" />
+            <span className="text-sm text-[#0C0A09] dark:text-white tracking-[0.2em] uppercase font-light">
+              Mady Finance
+            </span>
           </div>
 
-          <h2 className="text-2xl font-bold text-stone-900 dark:text-stone-50 mb-2">
+          <h2 className="text-2xl font-bold text-[#0C0A09] dark:text-white mb-2">
             {mode === 'signin' ? 'Welcome back' : 'Create your account'}
           </h2>
-          <p className="text-base text-stone-500 dark:text-stone-400 mb-8">
+          <p className="text-base text-[#0C0A09]/45 dark:text-white/40 mb-8">
             {mode === 'signin'
-              ? 'Sign in to your Investor Intelligence OS'
+              ? 'Sign in to Mady Finance'
               : "Start building smarter decisions — it's free"}
           </p>
 
@@ -253,7 +248,7 @@ export function AuthPage() {
                   type="button"
                   onClick={() => setShowPassword(s => !s)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  className="cursor-pointer transition-colors text-stone-400 hover:text-stone-700 dark:hover:text-stone-300"
+                  className="cursor-pointer transition-colors text-[#0C0A09]/35 dark:text-white/30 hover:text-[#0C0A09] dark:hover:text-white"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -261,18 +256,24 @@ export function AuthPage() {
               required
             />
 
-            <Button type="submit" loading={loading} fullWidth size="lg" className="mt-6">
+            <Button
+              type="submit"
+              loading={loading}
+              fullWidth
+              size="lg"
+              className="mt-6 !bg-[#0C0A09] !text-white hover:!opacity-90 dark:!bg-white dark:!text-[#0C0A09] !shadow-none focus-visible:!ring-[#0C0A09]/30 dark:focus-visible:!ring-white/30"
+            >
               {mode === 'signin' ? 'Sign in' : 'Create account'}
             </Button>
           </form>
 
-          <p className="text-center text-sm text-stone-500 dark:text-stone-400 mt-6">
+          <p className="text-center text-sm text-[#0C0A09]/45 dark:text-white/40 mt-6">
             {mode === 'signin' ? (
               <>
                 Don&apos;t have an account?{' '}
                 <button
                   onClick={() => { setMode('signup'); setError(null) }}
-                  className="text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-semibold transition-colors cursor-pointer"
+                  className="text-[#0C0A09] dark:text-white font-semibold hover:opacity-60 transition-opacity duration-200 cursor-pointer"
                 >
                   Sign up free
                 </button>
@@ -282,7 +283,7 @@ export function AuthPage() {
                 Already have an account?{' '}
                 <button
                   onClick={() => { setMode('signin'); setError(null) }}
-                  className="text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-semibold transition-colors cursor-pointer"
+                  className="text-[#0C0A09] dark:text-white font-semibold hover:opacity-60 transition-opacity duration-200 cursor-pointer"
                 >
                   Sign in
                 </button>
