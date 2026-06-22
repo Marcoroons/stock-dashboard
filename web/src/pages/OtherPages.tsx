@@ -1,4 +1,11 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Card, Badge, Button } from '@/components/ui'
+import { FileText, ChevronRight, Shield, ShieldCheck, Lock } from 'lucide-react'
+import { useAuth } from '@/context/AuthContext'
+import { supabase } from '@/lib/supabase'
+
+const ADMIN_KEY = 'Admin123'
 
 export function AcademyPage() {
   const MODULES = [
@@ -69,7 +76,99 @@ const TIERS = [
   },
 ]
 
+function AdminUnlock() {
+  const navigate = useNavigate()
+  const { user, profile, refreshProfile } = useAuth()
+  const [key, setKey] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Already an admin — show entry point to the panel
+  if (profile?.is_admin) {
+    return (
+      <button
+        onClick={() => navigate('/admin')}
+        className="w-full flex items-center gap-4 p-4 rounded-[12px] border border-[rgba(239,68,68,0.3)] bg-[rgba(239,68,68,0.06)] hover:bg-[rgba(239,68,68,0.1)] transition-colors duration-150 cursor-pointer group"
+      >
+        <div className="w-9 h-9 rounded-lg bg-[rgba(239,68,68,0.15)] flex items-center justify-center flex-shrink-0">
+          <ShieldCheck className="w-4 h-4 text-[#ef4444]" />
+        </div>
+        <div className="flex-1 text-left">
+          <p className="text-sm font-medium text-[#f1f5f9]">Admin access enabled</p>
+          <p className="text-xs text-[#64748b] mt-0.5">Open the Admin Panel to manage users, subscriptions, and access codes</p>
+        </div>
+        <ChevronRight className="w-4 h-4 text-[#475569] group-hover:text-[#94a3b8] transition-colors duration-150 flex-shrink-0" />
+      </button>
+    )
+  }
+
+  async function handleUnlock() {
+    if (!user) return
+    setError(null)
+
+    if (key.trim() !== ADMIN_KEY) {
+      setError('Incorrect admin key.')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ is_admin: true })
+        .eq('id', user.id)
+      if (updateError) throw updateError
+      await refreshProfile()
+      navigate('/admin')
+    } catch {
+      setError('Could not enable admin access. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="p-4 rounded-[12px] border border-[#1e293b] bg-[#0f172a]">
+      <div className="flex items-start gap-4 mb-4">
+        <div className="w-9 h-9 rounded-lg bg-white/5 border border-white/8 flex items-center justify-center flex-shrink-0">
+          <Shield className="w-4 h-4 text-[#94a3b8]" />
+        </div>
+        <div>
+          <p className="text-sm font-medium text-[#f1f5f9]">Admin access</p>
+          <p className="text-xs text-[#64748b] mt-0.5">Enter your admin key to unlock the Admin Panel.</p>
+        </div>
+      </div>
+
+      {error && (
+        <div className="bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.25)] rounded-[8px] p-2.5 mb-3">
+          <p className="text-xs text-[#ef4444]">{error}</p>
+        </div>
+      )}
+
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#475569]" />
+          <input
+            type="password"
+            placeholder="Admin key"
+            value={key}
+            onChange={e => setKey(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleUnlock()}
+            disabled={loading}
+            className="w-full bg-[#0f0f1a] border border-[#1e1e3a] text-[#f1f5f9] rounded-[8px] pl-9 pr-3 py-2 text-sm placeholder-[#334155] focus:outline-none focus:border-[#3b82f6] transition-colors disabled:opacity-50"
+          />
+        </div>
+        <Button onClick={handleUnlock} loading={loading} disabled={!key.trim()} size="sm">
+          Unlock
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 export function SettingsPage() {
+  const navigate = useNavigate()
+
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-8">
       <h1 className="text-2xl font-bold text-[#f1f5f9]">Settings & Subscription</h1>
@@ -115,6 +214,30 @@ export function SettingsPage() {
             to unlock premium features instantly.
           </p>
         </div>
+      </div>
+
+      {/* Legal & Compliance */}
+      <div>
+        <h2 className="text-lg font-semibold text-[#f1f5f9] mb-4">Legal &amp; Compliance</h2>
+        <button
+          onClick={() => navigate('/legal')}
+          className="w-full flex items-center gap-4 p-4 rounded-[12px] border border-[#1e293b] bg-[#0f172a] hover:bg-[#1e293b] transition-colors duration-150 cursor-pointer group"
+        >
+          <div className="w-9 h-9 rounded-lg bg-white/5 border border-white/8 flex items-center justify-center flex-shrink-0">
+            <FileText className="w-4 h-4 text-[#94a3b8]" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="text-sm font-medium text-[#f1f5f9]">Privacy Policy &amp; Terms of Service</p>
+            <p className="text-xs text-[#64748b] mt-0.5">GDPR · CCPA · Singapore PDPA · Malaysia PDPA · Indonesia UU PDP</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-[#475569] group-hover:text-[#94a3b8] transition-colors duration-150 flex-shrink-0" />
+        </button>
+      </div>
+
+      {/* Admin */}
+      <div>
+        <h2 className="text-lg font-semibold text-[#f1f5f9] mb-4">Administration</h2>
+        <AdminUnlock />
       </div>
     </div>
   )

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { ThemeProvider } from '@/context/ThemeContext'
 import { AuthProvider, useAuth } from '@/context/AuthContext'
 import { AlertsProvider } from '@/context/AlertsContext'
@@ -11,6 +11,7 @@ import { AuthPage } from '@/pages/AuthPage'
 import { AssessmentPage } from '@/pages/AssessmentPage'
 import { ConclusionPage } from '@/pages/ConclusionPage'
 import { DisclaimerPage } from '@/pages/DisclaimerPage'
+import { AuthConfirmPage } from '@/pages/AuthConfirmPage'
 import { ProductTour } from '@/components/ui/ProductTour'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { DashboardPage } from '@/pages/DashboardPage'
@@ -29,11 +30,19 @@ import { PricingPage } from '@/pages/PricingPage'
 import { AdminPage } from '@/pages/AdminPage'
 import { LoadingSpinner } from '@/components/ui/Skeleton'
 
+function LegalRoute() {
+  const navigate = useNavigate()
+  return <DisclaimerPage onAccept={() => navigate('/settings')} />
+}
+
 function AppRoutes() {
   const { user, dna, loading } = useAuth()
+  const location = useLocation()
 
+  // All hooks must be declared before any conditional return
   // Pre-auth view: landing page or auth form
   const [authView, setAuthView]           = useState<'landing' | 'auth'>('landing')
+  const [authMode, setAuthMode]           = useState<'signin' | 'signup'>('signin')
   // Post-auth gates
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false)
   const [dnaSkipped, setDnaSkipped]                 = useState(false)
@@ -49,6 +58,9 @@ function AppRoutes() {
     setConclusionSeen(localStorage.getItem(`conclusion_seen_${user.id}`) === '1')
     setTourDone(localStorage.getItem(`tutorial_done_${user.id}`) === '1')
   }, [user?.id])
+
+  // Email confirmation callback — bypasses all auth gates
+  if (location.pathname === '/auth/confirm') return <AuthConfirmPage />
 
   function acceptDisclaimer() {
     if (!user) return
@@ -90,12 +102,12 @@ function AppRoutes() {
     if (authView === 'landing') {
       return (
         <LandingPage
-          onGetStarted={() => setAuthView('auth')}
-          onLogin={() => setAuthView('auth')}
+          onGetStarted={() => { setAuthMode('signup'); setAuthView('auth') }}
+          onLogin={() => { setAuthMode('signin'); setAuthView('auth') }}
         />
       )
     }
-    return <AuthPage />
+    return <AuthPage initialMode={authMode} />
   }
 
   // ── Post-auth gates ─────────────────────────────────────────────────────────
@@ -145,6 +157,7 @@ function AppRoutes() {
             <Route path="admin"        element={<AdminPage />} />
             <Route path="academy"      element={<AcademyPage />} />
             <Route path="settings"     element={<SettingsPage />} />
+            <Route path="legal"        element={<LegalRoute />} />
             <Route path="*"            element={<Navigate to="/dashboard" replace />} />
           </Route>
         </Routes>

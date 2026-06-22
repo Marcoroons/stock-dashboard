@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+web/node_modules/
+
+# Build artifacts (local-only; web/dist is committed intentionally for deploy)
+nextjs-app/node_modules/
+nextjs-app/.next/
+
+# Supabase local
+supabase/.temp/
+
+# Logs & scratch
+web/errors.txt
+*.log
+
+# Editor / tooling
+.claude/
+.agents/
+.impeccable/
+.DS_Store

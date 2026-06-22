@@ -26,9 +26,9 @@ const FEATURES = [
   },
 ]
 
-export function AuthPage() {
+export function AuthPage({ initialMode = 'signin' }: { initialMode?: 'signin' | 'signup' }) {
   const { signIn, signUp } = useAuth()
-  const [mode, setMode] = useState<Mode>('signin')
+  const [mode, setMode] = useState<Mode>(initialMode)
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
