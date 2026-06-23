@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { Menu, Bell, Search, Sun, Moon } from 'lucide-react'
 import { Sidebar, MobileSidebar } from './Sidebar'
@@ -7,6 +7,7 @@ import { useAlerts } from '@/context/AlertsContext'
 import { useTheme } from '@/context/ThemeContext'
 import { track } from '@/lib/analytics'
 import { cn } from '@/lib/utils'
+import { LoadingSpinner } from '@/components/ui/Skeleton'
 
 function PageTracker() {
   const location = useLocation()
@@ -104,7 +105,15 @@ export function AppLayout() {
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto">
-          <Outlet />
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center py-32">
+                <LoadingSpinner size="lg" />
+              </div>
+            }
+          >
+            <Outlet />
+          </Suspense>
         </main>
       </div>
     </div>

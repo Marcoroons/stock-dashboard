@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { ThemeProvider } from '@/context/ThemeContext'
 import { AuthProvider, useAuth } from '@/context/AuthContext'
@@ -6,29 +6,42 @@ import { AlertsProvider } from '@/context/AlertsContext'
 import { NotificationProvider } from '@/components/ui/Toast'
 import { ModalProvider } from '@/components/ui/Modal'
 import { SubscriptionProvider } from '@/context/SubscriptionContext'
-import { LandingPage } from '@/pages/LandingPage'
-import { AuthPage } from '@/pages/AuthPage'
-import { AssessmentPage } from '@/pages/AssessmentPage'
-import { ConclusionPage } from '@/pages/ConclusionPage'
-import { DisclaimerPage } from '@/pages/DisclaimerPage'
-import { AuthConfirmPage } from '@/pages/AuthConfirmPage'
 import { ProductTour } from '@/components/ui/ProductTour'
 import { AppLayout } from '@/components/layout/AppLayout'
-import { DashboardPage } from '@/pages/DashboardPage'
-import { PortfolioPage } from '@/pages/PortfolioPage'
-import { AnalyzePage } from '@/pages/AnalyzePage'
-import { DnaProfilePage } from '@/pages/DnaProfilePage'
-import { AcademyPage, SettingsPage } from '@/pages/OtherPages'
-import { OpportunitiesPage } from '@/pages/OpportunitiesPage'
-import { GoalsPage } from '@/pages/GoalsPage'
-import { PortfolioDoctorPage } from '@/pages/PortfolioDoctorPage'
-import { FundAnalysisPage } from '@/pages/FundAnalysisPage'
-import { NewsPage } from '@/pages/NewsPage'
-import { AlertsPage } from '@/pages/AlertsPage'
-import { StressTestPage } from '@/pages/StressTestPage'
-import { PricingPage } from '@/pages/PricingPage'
-import { AdminPage } from '@/pages/AdminPage'
 import { LoadingSpinner } from '@/components/ui/Skeleton'
+
+// ── Lazy-loaded pages — each becomes its own chunk so the initial bundle stays small ──
+// Pre-auth / onboarding flow
+const LandingPage     = lazy(() => import('@/pages/LandingPage').then(m => ({ default: m.LandingPage })))
+const AuthPage        = lazy(() => import('@/pages/AuthPage').then(m => ({ default: m.AuthPage })))
+const AuthConfirmPage = lazy(() => import('@/pages/AuthConfirmPage').then(m => ({ default: m.AuthConfirmPage })))
+const AssessmentPage  = lazy(() => import('@/pages/AssessmentPage').then(m => ({ default: m.AssessmentPage })))
+const ConclusionPage  = lazy(() => import('@/pages/ConclusionPage').then(m => ({ default: m.ConclusionPage })))
+const DisclaimerPage  = lazy(() => import('@/pages/DisclaimerPage').then(m => ({ default: m.DisclaimerPage })))
+// Main app routes
+const DashboardPage       = lazy(() => import('@/pages/DashboardPage').then(m => ({ default: m.DashboardPage })))
+const PortfolioPage       = lazy(() => import('@/pages/PortfolioPage').then(m => ({ default: m.PortfolioPage })))
+const AnalyzePage         = lazy(() => import('@/pages/AnalyzePage').then(m => ({ default: m.AnalyzePage })))
+const DnaProfilePage      = lazy(() => import('@/pages/DnaProfilePage').then(m => ({ default: m.DnaProfilePage })))
+const AcademyPage         = lazy(() => import('@/pages/OtherPages').then(m => ({ default: m.AcademyPage })))
+const SettingsPage        = lazy(() => import('@/pages/OtherPages').then(m => ({ default: m.SettingsPage })))
+const OpportunitiesPage   = lazy(() => import('@/pages/OpportunitiesPage').then(m => ({ default: m.OpportunitiesPage })))
+const GoalsPage           = lazy(() => import('@/pages/GoalsPage').then(m => ({ default: m.GoalsPage })))
+const PortfolioDoctorPage = lazy(() => import('@/pages/PortfolioDoctorPage').then(m => ({ default: m.PortfolioDoctorPage })))
+const FundAnalysisPage    = lazy(() => import('@/pages/FundAnalysisPage').then(m => ({ default: m.FundAnalysisPage })))
+const NewsPage            = lazy(() => import('@/pages/NewsPage').then(m => ({ default: m.NewsPage })))
+const AlertsPage          = lazy(() => import('@/pages/AlertsPage').then(m => ({ default: m.AlertsPage })))
+const StressTestPage      = lazy(() => import('@/pages/StressTestPage').then(m => ({ default: m.StressTestPage })))
+const PricingPage         = lazy(() => import('@/pages/PricingPage').then(m => ({ default: m.PricingPage })))
+const AdminPage           = lazy(() => import('@/pages/AdminPage').then(m => ({ default: m.AdminPage })))
+
+function FullScreenLoader() {
+  return (
+    <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--color-bg-primary)' }}>
+      <LoadingSpinner size="lg" />
+    </div>
+  )
+}
 
 function LegalRoute() {
   const navigate = useNavigate()
@@ -174,7 +187,9 @@ export default function App() {
         <AuthProvider>
           <NotificationProvider>
             <ModalProvider>
-              <AppRoutes />
+              <Suspense fallback={<FullScreenLoader />}>
+                <AppRoutes />
+              </Suspense>
             </ModalProvider>
           </NotificationProvider>
         </AuthProvider>
