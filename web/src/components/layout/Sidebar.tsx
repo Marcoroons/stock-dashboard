@@ -8,6 +8,7 @@ import {
 import { useAuth } from '@/context/AuthContext'
 import { useAlerts } from '@/context/AlertsContext'
 import { useSubscription } from '@/context/SubscriptionContext'
+import { MadyLogo } from '@/components/ui/MadyLogo'
 import { cn } from '@/lib/utils'
 
 interface NavItem {
@@ -67,17 +68,15 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       )}
     >
       {/* Logo row */}
-      <div className="flex items-center gap-3 p-4 border-b border-stone-200 dark:border-stone-800 min-h-[64px]">
-        <div className="w-8 h-8 rounded-xl bg-sky-600 dark:bg-sky-500 flex items-center justify-center flex-shrink-0 shadow-sm">
-          <TrendingUp className="w-4 h-4 text-white" />
-        </div>
+      <div className="flex items-center gap-2.5 p-4 border-b border-stone-200 dark:border-stone-800 min-h-[64px]">
+        <MadyLogo className="w-7 h-7 text-[#0C0A09] dark:text-white flex-shrink-0" />
         {!collapsed && (
           <motion.span
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-sm font-semibold text-stone-900 dark:text-stone-100 whitespace-nowrap"
+            className="text-sm font-light tracking-[0.18em] uppercase text-[#0C0A09] dark:text-white whitespace-nowrap"
           >
-            Investor OS
+            Mady Finance
           </motion.span>
         )}
         <button
@@ -247,11 +246,9 @@ export function MobileSidebar({ open, onClose }: MobileSidebarProps) {
             )}
           >
             <div className="flex items-center justify-between p-4 border-b border-stone-200 dark:border-stone-800">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-sky-600 dark:bg-sky-500 flex items-center justify-center">
-                  <TrendingUp className="w-4 h-4 text-white" />
-                </div>
-                <span className="font-semibold text-stone-900 dark:text-stone-100">Investor OS</span>
+              <div className="flex items-center gap-2.5">
+                <MadyLogo className="w-7 h-7 text-[#0C0A09] dark:text-white flex-shrink-0" />
+                <span className="text-sm font-light tracking-[0.18em] uppercase text-[#0C0A09] dark:text-white">Mady Finance</span>
               </div>
               <button
                 onClick={onClose}

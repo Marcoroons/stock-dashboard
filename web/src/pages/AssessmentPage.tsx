@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronRight, ChevronLeft, TrendingUp, SkipForward, HelpCircle, X, Dna } from 'lucide-react'
+import { ChevronRight, ChevronLeft, SkipForward, HelpCircle, X, Dna } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { Button } from '@/components/ui/Button'
+import { MadyLogo } from '@/components/ui/MadyLogo'
 import { useAuth } from '@/context/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { track } from '@/lib/analytics'
@@ -345,10 +346,8 @@ export function AssessmentPage({ onSkip, onComplete }: AssessmentPageProps) {
   const Header = (
     <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800">
       <div className="flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-xl bg-sky-600 flex items-center justify-center flex-shrink-0">
-          <TrendingUp className="w-4 h-4 text-white" strokeWidth={2.5} />
-        </div>
-        <span className="font-semibold text-gray-900 dark:text-white text-sm">Investor OS</span>
+        <MadyLogo className="w-7 h-7 text-[#0C0A09] dark:text-white flex-shrink-0" />
+        <span className="text-sm font-light tracking-[0.18em] uppercase text-[#0C0A09] dark:text-white">Mady Finance</span>
       </div>
       {stage === 'questions' && (
         <span className="text-sm font-medium text-gray-400 dark:text-gray-500">

@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, ChevronRight, Briefcase, BarChart3, PiggyBank, BookOpen, Trophy, Check, TrendingUp } from 'lucide-react'
+import { ChevronDown, ChevronRight, Briefcase, BarChart3, PiggyBank, BookOpen, Trophy, Check } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { MadyLogo } from '@/components/ui/MadyLogo'
 import { cn } from '@/lib/utils'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -150,10 +151,8 @@ export function ConclusionPage({ dna, onContinue, onViewPricing }: ConclusionPag
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
       {/* Header */}
       <div className="flex items-center gap-2.5 px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-        <div className="w-8 h-8 rounded-xl bg-sky-600 flex items-center justify-center flex-shrink-0">
-          <TrendingUp className="w-4 h-4 text-white" strokeWidth={2.5} />
-        </div>
-        <span className="font-semibold text-gray-900 dark:text-white text-sm">Investor OS</span>
+        <MadyLogo className="w-7 h-7 text-[#0C0A09] dark:text-white flex-shrink-0" />
+        <span className="text-sm font-light tracking-[0.18em] uppercase text-[#0C0A09] dark:text-white">Mady Finance</span>
       </div>
 
       <div className="flex-1 max-w-2xl mx-auto w-full px-4 py-10 sm:py-16">

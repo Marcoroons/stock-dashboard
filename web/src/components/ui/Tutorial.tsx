@@ -12,7 +12,7 @@ interface TutorialStep {
 const STEPS: TutorialStep[] = [
   {
     icon: '🎉',
-    title: 'Welcome to your Investor Intelligence OS!',
+    title: 'Welcome to Mady Finance!',
     description:
       "You've just unlocked a platform built entirely around your unique investor profile. Take 60 seconds for a quick tour — or skip if you're feeling adventurous.",
   },

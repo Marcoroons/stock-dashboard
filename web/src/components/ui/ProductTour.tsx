@@ -17,7 +17,7 @@ interface TourStep {
 const STEPS: TourStep[] = [
   {
     icon: Sparkles,
-    title: "Welcome to your Investor OS!",
+    title: "Welcome to Mady Finance!",
     description: "You've just unlocked a platform built entirely around your investor DNA. Take 60 seconds for a quick tour — or press Escape to skip.",
   },
   {
