@@ -28,12 +28,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         <input
           ref={ref}
           className={cn(
-            'w-full rounded-[10px] border px-4 py-2.5 text-sm transition-all duration-200',
+            'w-full rounded-[10px] border py-2.5 text-sm transition-all duration-200',
             'bg-white border-stone-200 text-stone-900 placeholder-stone-400',
             'focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20',
             'dark:bg-stone-800 dark:border-stone-700 dark:text-stone-100 dark:placeholder-stone-500 dark:focus:border-sky-400 dark:focus:ring-sky-400/20',
-            icon ? 'pl-10' : '',
-            rightIcon ? 'pr-10' : '',
+            // Directional padding only — never combine `px-*` with `pl-*`/`pr-*`,
+            // the shorthand can win the cascade and let content slide under the icon.
+            icon ? 'pl-10' : 'pl-4',
+            rightIcon ? 'pr-10' : 'pr-4',
             error ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20 dark:border-red-600 dark:focus:border-red-500' : '',
             className,
           )}
