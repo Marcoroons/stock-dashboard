@@ -9,6 +9,7 @@ import { SubscriptionProvider } from '@/context/SubscriptionContext'
 import { ProductTour } from '@/components/ui/ProductTour'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { LoadingSpinner } from '@/components/ui/Skeleton'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 // ── Lazy-loaded pages — each becomes its own chunk so the initial bundle stays small ──
 // Pre-auth / onboarding flow
@@ -182,18 +183,20 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <ThemeProvider>
-        <AuthProvider>
-          <NotificationProvider>
-            <ModalProvider>
-              <Suspense fallback={<FullScreenLoader />}>
-                <AppRoutes />
-              </Suspense>
-            </ModalProvider>
-          </NotificationProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <ThemeProvider>
+          <AuthProvider>
+            <NotificationProvider>
+              <ModalProvider>
+                <Suspense fallback={<FullScreenLoader />}>
+                  <AppRoutes />
+                </Suspense>
+              </ModalProvider>
+            </NotificationProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   )
 }
