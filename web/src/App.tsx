@@ -6,7 +6,6 @@ import { AlertsProvider } from '@/context/AlertsContext'
 import { NotificationProvider } from '@/components/ui/Toast'
 import { ModalProvider } from '@/components/ui/Modal'
 import { SubscriptionProvider } from '@/context/SubscriptionContext'
-import { ProductTour } from '@/components/ui/ProductTour'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { LoadingSpinner } from '@/components/ui/Skeleton'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
@@ -19,6 +18,8 @@ const AuthConfirmPage = lazy(() => import('@/pages/AuthConfirmPage').then(m => (
 const AssessmentPage  = lazy(() => import('@/pages/AssessmentPage').then(m => ({ default: m.AssessmentPage })))
 const ConclusionPage  = lazy(() => import('@/pages/ConclusionPage').then(m => ({ default: m.ConclusionPage })))
 const DisclaimerPage  = lazy(() => import('@/pages/DisclaimerPage').then(m => ({ default: m.DisclaimerPage })))
+// Post-auth one-time product tour — lazy so its Framer Motion + icon deps stay out of the initial bundle
+const ProductTour     = lazy(() => import('@/components/ui/ProductTour').then(m => ({ default: m.ProductTour })))
 // Main app routes
 const DashboardPage       = lazy(() => import('@/pages/DashboardPage').then(m => ({ default: m.DashboardPage })))
 const PortfolioPage       = lazy(() => import('@/pages/PortfolioPage').then(m => ({ default: m.PortfolioPage })))
@@ -175,7 +176,7 @@ function AppRoutes() {
             <Route path="*"            element={<Navigate to="/dashboard" replace />} />
           </Route>
         </Routes>
-        {!tourDone && <ProductTour onComplete={completeTour} />}
+        {!tourDone && <Suspense fallback={null}><ProductTour onComplete={completeTour} /></Suspense>}
       </SubscriptionProvider>
     </AlertsProvider>
   )
