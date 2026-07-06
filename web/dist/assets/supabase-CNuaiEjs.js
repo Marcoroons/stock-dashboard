@@ -1,0 +1,1 @@
+import{t as e}from"./supabase-C4qSczDO.js";var t=e(`https://urrhzmmbnnyzemdyqewa.supabase.co`,`eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVycmh6bW1ibm55emVtZHlxZXdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyOTU0MjYsImV4cCI6MjA5NTg3MTQyNn0.jHkNymTlbHc-X57eon4sD-hoBXoU7oI_0sY1PYuMU7A`);export{t};
