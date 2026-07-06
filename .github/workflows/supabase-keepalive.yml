@@ -1,0 +1,33 @@
+name: Supabase keep-alive
+
+# Free-tier Supabase pauses a project after 7 days of no activity.
+# This runs a lightweight REST query twice a week (~3-4 day gaps) so the
+# project never crosses that threshold. Runs in GitHub's cloud, so it
+# fires whether or not any dev machine is on.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1,4'   # Mon & Thu at 06:00 UTC
+  workflow_dispatch: {}      # allow manual runs from the Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query Supabase REST (counts as DB activity)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          set -euo pipefail
+          code=$(curl -s -o /dev/null -w '%{http_code}' \
+            "${SUPABASE_URL}/rest/v1/stocks?select=id&limit=1" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
+          echo "Supabase responded: HTTP ${code}"
+          if [ "${code}" -ge 200 ] && [ "${code}" -lt 300 ]; then
+            echo "Keep-alive OK — inactivity timer reset."
+          else
+            echo "::error::Unexpected status ${code} from Supabase keep-alive query" >&2
+            exit 1
+          fi
