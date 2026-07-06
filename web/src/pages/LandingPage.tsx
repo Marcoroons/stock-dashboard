@@ -137,7 +137,7 @@ function LandingBillingToggle({
           'text-sm font-medium transition-colors',
           !yearly
             ? 'text-[#0C0A09] dark:text-white'
-            : 'text-[#0C0A09]/35 dark:text-white/30',
+            : 'text-[#0C0A09]/60 dark:text-white/60',
         )}
       >
         Monthly
@@ -166,7 +166,7 @@ function LandingBillingToggle({
           'text-sm font-medium transition-colors flex items-center gap-1.5',
           yearly
             ? 'text-[#0C0A09] dark:text-white'
-            : 'text-[#0C0A09]/35 dark:text-white/30',
+            : 'text-[#0C0A09]/60 dark:text-white/60',
         )}
       >
         Yearly
@@ -219,7 +219,7 @@ function LandingPlanCard({
         <div className="flex items-start justify-between mb-5">
           <div>
             <h3 className="text-lg font-bold text-[#0C0A09] dark:text-white mb-0.5">{plan.name}</h3>
-            <p className="text-xs text-[#0C0A09]/45 dark:text-white/40">{plan.tagline}</p>
+            <p className="text-xs text-[#0C0A09]/70 dark:text-white/70">{plan.tagline}</p>
           </div>
           <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#0C0A09]/[0.06] dark:bg-white/[0.06]">
             <plan.icon className="w-5 h-5 text-[#0C0A09]/70 dark:text-white/70" strokeWidth={2} />
@@ -240,10 +240,10 @@ function LandingPlanCard({
                 ${price}
               </motion.span>
             </AnimatePresence>
-            <span className="text-[#0C0A09]/35 dark:text-white/30 pb-1.5 text-sm">/month</span>
+            <span className="text-[#0C0A09]/60 dark:text-white/60 pb-1.5 text-sm">/month</span>
           </div>
           {yearly && (
-            <p className="text-xs text-[#0C0A09]/50 dark:text-white/40 mt-1 font-medium">
+            <p className="text-xs text-[#0C0A09]/70 dark:text-white/70 mt-1 font-medium">
               Billed ${price * 12}/year
             </p>
           )}
@@ -255,7 +255,7 @@ function LandingPlanCard({
               <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 bg-[#0C0A09]/[0.06] dark:bg-white/[0.06]">
                 <Check className="w-2.5 h-2.5 text-[#0C0A09]/60 dark:text-white/60" strokeWidth={3} />
               </div>
-              <span className="text-xs text-[#0C0A09]/55 dark:text-white/45 leading-relaxed">{feat}</span>
+              <span className="text-xs text-[#0C0A09]/70 dark:text-white/70 leading-relaxed">{feat}</span>
             </li>
           ))}
         </ul>
@@ -290,7 +290,7 @@ function LandingPricingSection({ onGetStarted }: { onGetStarted: () => void }) {
         <motion.p
           {...fadeUp}
           transition={{ duration: 0.5 }}
-          className="text-center text-[#0C0A09]/35 dark:text-white/30 text-xs tracking-[0.3em] uppercase mb-5"
+          className="text-center text-[#0C0A09]/60 dark:text-white/60 text-xs tracking-[0.3em] uppercase mb-5"
         >
           Pricing
         </motion.p>
@@ -304,7 +304,7 @@ function LandingPricingSection({ onGetStarted }: { onGetStarted: () => void }) {
         <motion.p
           {...fadeUp}
           transition={{ delay: 0.15, duration: 0.6 }}
-          className="text-center text-[#0C0A09]/45 dark:text-white/40 text-base max-w-md mx-auto leading-relaxed mb-10"
+          className="text-center text-[#0C0A09]/70 dark:text-white/70 text-base max-w-md mx-auto leading-relaxed mb-10"
         >
           Start with a 10-day free trial. No credit card required.
         </motion.p>
@@ -333,7 +333,7 @@ function LandingPricingSection({ onGetStarted }: { onGetStarted: () => void }) {
         <motion.p
           {...fadeUp}
           transition={{ delay: 0.5, duration: 0.5 }}
-          className="text-center text-[#0C0A09]/25 dark:text-white/20 text-xs mt-8 tracking-wider"
+          className="text-center text-[#0C0A09]/60 dark:text-white/60 text-xs mt-8 tracking-wider"
         >
           10 days free · cancel anytime · no credit card
         </motion.p>
@@ -474,7 +474,7 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
                   'font-black leading-none',
                   'text-[clamp(2.4rem,6.5vw,5rem)]',
                   dim
-                    ? 'text-[#0C0A09]/20 dark:text-white/20'
+                    ? 'text-[#0C0A09]/45 dark:text-white/45'
                     : 'text-[#0C0A09] dark:text-white',
                 )}
               >
@@ -494,7 +494,7 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
               'Money sitting in savings?',
               'Stock apps too overwhelming?',
             ].map(line => (
-              <p key={line} className="text-[#0C0A09]/30 dark:text-white/30 text-base sm:text-lg font-light tracking-wide">
+              <p key={line} className="text-[#0C0A09]/60 dark:text-white/60 text-base sm:text-lg font-light tracking-wide">
                 {line}
               </p>
             ))}
@@ -511,7 +511,7 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
           <motion.p
             {...fadeUp}
             transition={{ duration: 0.6 }}
-            className="text-[#0C0A09]/35 dark:text-white/30 text-xs tracking-[0.3em] uppercase mb-6"
+            className="text-[#0C0A09]/60 dark:text-white/60 text-xs tracking-[0.3em] uppercase mb-6"
           >
             How it works
           </motion.p>
@@ -529,7 +529,7 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
           <motion.p
             {...fadeUp}
             transition={{ delay: 0.2, duration: 0.7 }}
-            className="text-[#0C0A09]/45 dark:text-white/40 text-lg leading-relaxed max-w-xl mb-14"
+            className="text-[#0C0A09]/70 dark:text-white/70 text-lg leading-relaxed max-w-xl mb-14"
           >
             No jargon. No guesswork.
             <br />
@@ -554,7 +554,7 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
           <motion.p
             {...fadeUp}
             transition={{ delay: 0.5, duration: 0.5 }}
-            className="text-[#0C0A09]/20 dark:text-white/20 text-xs mt-5 tracking-wider"
+            className="text-[#0C0A09]/60 dark:text-white/60 text-xs mt-5 tracking-wider"
           >
             10 days free · no credit card
           </motion.p>
@@ -604,7 +604,7 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
                 <motion.p
                   {...fadeUp}
                   transition={{ delay: 0.05, duration: 0.5 }}
-                  className="text-[#0C0A09]/20 dark:text-white/20 text-sm font-mono tracking-[0.2em] mb-5"
+                  className="text-[#0C0A09]/60 dark:text-white/60 text-sm font-mono tracking-[0.2em] mb-5"
                 >
                   {feat.n}
                 </motion.p>
@@ -618,7 +618,7 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
                 <motion.p
                   {...fadeUp}
                   transition={{ delay: 0.2, duration: 0.6 }}
-                  className="text-[#0C0A09]/45 dark:text-white/40 text-lg leading-relaxed"
+                  className="text-[#0C0A09]/70 dark:text-white/70 text-lg leading-relaxed"
                 >
                   {feat.body}
                 </motion.p>
@@ -642,7 +642,7 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
             className="flex items-center gap-3 mb-8"
           >
             <MadyLogo className="w-8 h-8 text-[#0C0A09]/55 dark:text-white/60" />
-            <span className="text-[#0C0A09]/40 dark:text-white/40 text-xs tracking-[0.3em] uppercase">Mady Finance</span>
+            <span className="text-[#0C0A09]/60 dark:text-white/60 text-xs tracking-[0.3em] uppercase">Mady Finance</span>
           </motion.div>
 
           <motion.h2
@@ -656,7 +656,7 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
           <motion.p
             {...fadeUp}
             transition={{ delay: 0.18, duration: 0.6 }}
-            className="text-[#0C0A09]/30 dark:text-white/30 text-lg mb-12 max-w-md leading-relaxed"
+            className="text-[#0C0A09]/70 dark:text-white/70 text-lg mb-12 max-w-md leading-relaxed"
           >
             Join thousands of beginners who finally understand their money.
           </motion.p>
@@ -685,7 +685,7 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.96 }}
               onClick={onLogin}
-              className="flex items-center justify-center gap-2.5 px-9 py-4 rounded-xl border border-[#0C0A09]/15 dark:border-white/15 text-[#0C0A09]/55 dark:text-white/60 hover:text-[#0C0A09] dark:hover:text-white hover:border-[#0C0A09]/30 dark:hover:border-white/30 font-medium text-sm cursor-pointer transition-all duration-200 min-w-[160px] min-h-[52px]"
+              className="flex items-center justify-center gap-2.5 px-9 py-4 rounded-xl border border-[#0C0A09]/15 dark:border-white/15 text-[#0C0A09]/70 dark:text-white/70 hover:text-[#0C0A09] dark:hover:text-white hover:border-[#0C0A09]/30 dark:hover:border-white/30 font-medium text-sm cursor-pointer transition-all duration-200 min-w-[160px] min-h-[52px]"
             >
               Log In
             </motion.button>
@@ -697,10 +697,10 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
         ════════════════════════════════════════════════════════════════════ */}
         <footer className="border-t border-[#0C0A09]/[0.06] dark:border-white/[0.06] px-8 py-8 bg-[#EEECEA] dark:bg-[#050505] flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <MadyLogo className="w-5 h-5 text-[#0C0A09]/30 dark:text-white/30" />
-            <span className="text-[#0C0A09]/25 dark:text-white/25 text-xs tracking-widest uppercase">Mady Finance</span>
+            <MadyLogo className="w-5 h-5 text-[#0C0A09]/60 dark:text-white/60" />
+            <span className="text-[#0C0A09]/60 dark:text-white/60 text-xs tracking-widest uppercase">Mady Finance</span>
           </div>
-          <p className="text-[#0C0A09]/20 dark:text-white/20 text-xs">
+          <p className="text-[#0C0A09]/60 dark:text-white/60 text-xs">
             © 2025 · Not financial advice · Educational use only
           </p>
         </footer>
