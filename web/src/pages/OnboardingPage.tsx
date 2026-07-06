@@ -300,7 +300,8 @@ export function OnboardingPage({ onSkip }: OnboardingPageProps) {
     setSubmitting(true)
     const profile = calculateProfile(answers)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase.from('dna_assessments') as any).insert({ user_id: user.id, ...profile })
+    const { error } = await (supabase.from('dna_assessments') as any).insert({ user_id: user.id, ...profile })
+    if (error) console.error('[dna_assessments] insert failed:', error.code, '|', error.message, '|', error.details, '|', error.hint)
     track('onboarding_completed', { risk_score: profile.risk_score })
     setStage('done')
     setSubmitting(false)

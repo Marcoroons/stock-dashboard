@@ -130,7 +130,8 @@ export function AlertsProvider({ children }: { children: ReactNode }) {
           body: a.body,
           meta: a.meta,
         }))
-        const { data: inserted } = await db.from('portfolio_alerts').insert(rows).select()
+        const { data: inserted, error: insertErr } = await db.from('portfolio_alerts').insert(rows).select()
+        if (insertErr) console.error('[portfolio_alerts] insert failed:', insertErr.code, '|', insertErr.message, '|', insertErr.details, '|', insertErr.hint)
         setAlerts(inserted ?? [])
       } else {
         setAlerts([])
