@@ -20,6 +20,11 @@ interface SubscriptionContextValue {
 
 const SubscriptionContext = createContext<SubscriptionContextValue | null>(null)
 
+// TEMP — subscription tiers shelved for stress testing. Every user gets full
+// access to all features and no upgrade prompts appear. Set to false to
+// restore real per-tier gating (Stripe checkout + access codes still work).
+const STRESS_TEST_UNLOCK_ALL = true
+
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function SubscriptionProvider({ children }: { children: ReactNode }) {
@@ -35,15 +40,17 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const [accessCodeOpen, setAccessCodeOpen] = useState(false)
   const [isLoadingCheckout, setIsLoadingCheckout] = useState(false)
 
-  const tier: SubscriptionTier = (profile?.subscription_tier as SubscriptionTier) ?? 'free'
+  const realTier: SubscriptionTier = (profile?.subscription_tier as SubscriptionTier) ?? 'free'
+  const tier: SubscriptionTier = STRESS_TEST_UNLOCK_ALL ? 'pro' : realTier
   const access = getTierAccess(tier)
 
   const hasAccess = useCallback(
-    (feature: keyof FeatureAccess) => access[feature],
+    (feature: keyof FeatureAccess) => STRESS_TEST_UNLOCK_ALL || access[feature],
     [access],
   )
 
   const openUpgrade = useCallback((feature?: keyof FeatureAccess, targetTier?: 'plus' | 'pro') => {
+    if (STRESS_TEST_UNLOCK_ALL) return   // no upgrade prompts while everything is unlocked
     // Determine required tier from feature if not explicitly passed
     const proFeatures: Array<keyof FeatureAccess> = ['stressTesting', 'insiderActivity', 'advancedAnalytics', 'aiCoach']
     const required = targetTier ?? (feature && proFeatures.includes(feature) ? 'pro' : 'plus')

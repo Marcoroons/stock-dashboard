@@ -16,7 +16,6 @@ const LandingPage     = lazy(() => import('@/pages/LandingPage').then(m => ({ de
 const AuthPage        = lazy(() => import('@/pages/AuthPage').then(m => ({ default: m.AuthPage })))
 const AuthConfirmPage = lazy(() => import('@/pages/AuthConfirmPage').then(m => ({ default: m.AuthConfirmPage })))
 const AssessmentPage  = lazy(() => import('@/pages/AssessmentPage').then(m => ({ default: m.AssessmentPage })))
-const ConclusionPage  = lazy(() => import('@/pages/ConclusionPage').then(m => ({ default: m.ConclusionPage })))
 const DisclaimerPage  = lazy(() => import('@/pages/DisclaimerPage').then(m => ({ default: m.DisclaimerPage })))
 // Post-auth one-time product tour — lazy so its Framer Motion + icon deps stay out of the initial bundle
 const ProductTour     = lazy(() => import('@/components/ui/ProductTour').then(m => ({ default: m.ProductTour })))
@@ -51,7 +50,7 @@ function LegalRoute() {
 }
 
 function AppRoutes() {
-  const { user, dna, loading } = useAuth()
+  const { user, profile, dna, loading } = useAuth()
   const location = useLocation()
 
   // All hooks must be declared before any conditional return
@@ -61,18 +60,17 @@ function AppRoutes() {
   // Post-auth gates
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false)
   const [dnaSkipped, setDnaSkipped]                 = useState(false)
-  const [conclusionSeen, setConclusionSeen]         = useState(false)
   const [tourDone, setTourDone]                     = useState(false)
-  // After conclusion user can jump straight to pricing
-  const [goToPricing, setGoToPricing]               = useState(false)
 
   useEffect(() => {
     if (!user) return
     setDisclaimerAccepted(localStorage.getItem(`disclaimer_${user.id}`) === '1')
     setDnaSkipped(localStorage.getItem(`dna_skip_${user.id}`) === '1')
-    setConclusionSeen(localStorage.getItem(`conclusion_seen_${user.id}`) === '1')
-    setTourDone(localStorage.getItem(`tutorial_done_${user.id}`) === '1')
-  }, [user?.id])
+    // Tour is one-time per account: honor the DB flag (persists across devices)
+    // OR the local flag (works before the profile row loads / if the column is absent).
+    const tourDoneDb = Boolean((profile as unknown as { tour_completed?: boolean } | null)?.tour_completed)
+    setTourDone(tourDoneDb || localStorage.getItem(`tutorial_done_${user.id}`) === '1')
+  }, [user?.id, profile])
 
   // Email confirmation callback — bypasses all auth gates
   if (location.pathname === '/auth/confirm') return <AuthConfirmPage />
@@ -87,12 +85,6 @@ function AppRoutes() {
     if (!user) return
     localStorage.setItem(`dna_skip_${user.id}`, '1')
     setDnaSkipped(true)
-  }
-
-  function markConclusionSeen() {
-    if (!user) return
-    localStorage.setItem(`conclusion_seen_${user.id}`, '1')
-    setConclusionSeen(true)
   }
 
   function completeTour() {
@@ -139,24 +131,13 @@ function AppRoutes() {
     )
   }
 
-  if (dna && !conclusionSeen && !dnaSkipped) {
-    return (
-      <ConclusionPage
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        dna={dna as any}
-        onContinue={markConclusionSeen}
-        onViewPricing={() => { markConclusionSeen(); setGoToPricing(true) }}
-      />
-    )
-  }
-
   // ── Main app ────────────────────────────────────────────────────────────────
   return (
     <AlertsProvider>
       <SubscriptionProvider>
         <Routes>
           <Route path="/" element={<AppLayout />}>
-            <Route index element={<Navigate to={goToPricing ? '/pricing' : '/dashboard'} replace />} />
+            <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard"    element={<DashboardPage />} />
             <Route path="portfolio"    element={<PortfolioPage />} />
             <Route path="analyze"      element={<AnalyzePage />} />
