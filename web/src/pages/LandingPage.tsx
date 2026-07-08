@@ -67,54 +67,54 @@ interface LPlan {
   features: string[]
 }
 
+// Mirrors the real tiers in lib/subscription.ts (Free / Plus / Pro). Keep in sync.
 const LP_PLANS: LPlan[] = [
   {
-    id: 'basic',
-    name: 'Basic',
-    tagline: 'Essential tools for getting started',
-    monthly: 9,
-    yearly: 7,
+    id: 'free',
+    name: 'Free',
+    tagline: 'Start your investing journey',
+    monthly: 0,
+    yearly: 0,
     icon: Sparkles,
     popular: false,
     features: [
       'Investor DNA Assessment',
       'Portfolio Tracking',
-      'Stock Analysis (10/day)',
-      'Portfolio Doctor',
-      'Life Goals Planner',
-      'Academy Access',
+      'Stock Analysis (5/day)',
+      'Dashboard & Watchlist',
     ],
   },
   {
-    id: 'pro',
-    name: 'Pro',
-    tagline: 'Deeper insights for active investors',
-    monthly: 19,
-    yearly: 15,
+    id: 'plus',
+    name: 'Plus',
+    tagline: 'For the serious self-directed investor',
+    monthly: 5,
+    yearly: 4,
     icon: Zap,
     popular: true,
     features: [
-      'Everything in Basic',
-      'Unlimited Stock Analysis',
-      'AI Portfolio Builder',
+      'Everything in Free',
+      'Portfolio Doctor',
       'Discovery Engine',
+      'Goal Planner',
       'News Intelligence',
       'Fund Analysis',
     ],
   },
   {
-    id: 'premium',
-    name: 'Premium',
-    tagline: 'Institutional-grade for serious investors',
-    monthly: 39,
-    yearly: 31,
+    id: 'pro',
+    name: 'Pro',
+    tagline: 'Institutional-grade tools for serious wealth',
+    monthly: 15,
+    yearly: 12,
     icon: Shield,
     popular: false,
     features: [
-      'Everything in Pro',
-      'Smart Alerts & Watchlists',
-      'Portfolio Stress Testing',
-      'Insider Activity Tracker',
+      'Everything in Plus',
+      'Smart Alerts',
+      'Stress Testing',
+      'Advanced Insights',
+      'Insider Activity',
       'AI Coach',
       'Priority Support',
     ],
@@ -242,7 +242,7 @@ function LandingPlanCard({
             </AnimatePresence>
             <span className="text-[#0C0A09]/60 dark:text-white/60 pb-1.5 text-sm">/month</span>
           </div>
-          {yearly && (
+          {yearly && plan.monthly > 0 && (
             <p className="text-xs text-[#0C0A09]/70 dark:text-white/70 mt-1 font-medium">
               Billed ${price * 12}/year
             </p>
@@ -272,7 +272,7 @@ function LandingPlanCard({
               : 'bg-[#0C0A09]/8 dark:bg-white/10 text-[#0C0A09] dark:text-white hover:bg-[#0C0A09]/14 dark:hover:bg-white/18',
           )}
         >
-          Start free trial
+          {plan.monthly === 0 ? 'Get started free' : 'Start free trial'}
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>
@@ -287,13 +287,6 @@ function LandingPricingSection({ onGetStarted }: { onGetStarted: () => void }) {
     <section id="pricing" className="px-8 sm:px-16 py-28 bg-[#EEECEA] dark:bg-[#050505]">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <motion.p
-          {...fadeUp}
-          transition={{ duration: 0.5 }}
-          className="text-center text-[#0C0A09]/60 dark:text-white/60 text-xs tracking-[0.3em] uppercase mb-5"
-        >
-          Pricing
-        </motion.p>
         <motion.h2
           {...fadeUp}
           transition={{ delay: 0.08, duration: 0.6 }}
@@ -508,14 +501,6 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
             SECTION 3 — VALUE PROP + PRIMARY CTA
         ════════════════════════════════════════════════════════════════════ */}
         <section className="flex flex-col items-center justify-center px-8 py-32 bg-[#EEECEA] dark:bg-[#0A0A0A] text-center">
-          <motion.p
-            {...fadeUp}
-            transition={{ duration: 0.6 }}
-            className="text-[#0C0A09]/60 dark:text-white/60 text-xs tracking-[0.3em] uppercase mb-6"
-          >
-            How it works
-          </motion.p>
-
           <motion.h2
             {...fadeUp}
             transition={{ delay: 0.1, duration: 0.7 }}
@@ -601,13 +586,6 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
 
               {/* Text */}
               <div className="flex-1 max-w-lg">
-                <motion.p
-                  {...fadeUp}
-                  transition={{ delay: 0.05, duration: 0.5 }}
-                  className="text-[#0C0A09]/60 dark:text-white/60 text-sm font-mono tracking-[0.2em] mb-5"
-                >
-                  {feat.n}
-                </motion.p>
                 <motion.h3
                   {...fadeUp}
                   transition={{ delay: 0.12, duration: 0.6 }}
@@ -658,7 +636,7 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
             transition={{ delay: 0.18, duration: 0.6 }}
             className="text-[#0C0A09]/70 dark:text-white/70 text-lg mb-12 max-w-md leading-relaxed"
           >
-            Join thousands of beginners who finally understand their money.
+            Understand your money — and start investing with real confidence.
           </motion.p>
 
           {/* Bounce-in buttons */}
@@ -701,7 +679,7 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
             <span className="text-[#0C0A09]/60 dark:text-white/60 text-xs tracking-widest uppercase">Mady Finance</span>
           </div>
           <p className="text-[#0C0A09]/60 dark:text-white/60 text-xs">
-            © 2025 · Not financial advice · Educational use only
+            © {new Date().getFullYear()} · Not financial advice · Educational use only
           </p>
         </footer>
 
