@@ -15,7 +15,7 @@ import { MOCK_PERFORMANCE_SERIES, MOCK_NEWS } from '@/data/mock'
 import { fmtBig, fmt, toDnaInput } from '@/lib/utils'
 import { computeDnaProfile, getRiskLabel, getRiskColor } from '@/lib/dna-engine'
 import { ALL_ARCHETYPES } from '@/lib/archetypes'
-import { fetchBulkQuotes, type FinnhubQuote } from '@/lib/market-data'
+import { fetchBulkQuotes, quotesAsOf, type FinnhubQuote } from '@/lib/market-data'
 import { usePortfolio } from '@/hooks/usePortfolio'
 import { useWatchlist } from '@/hooks/useWatchlist'
 import { cn } from '@/lib/utils'
@@ -163,6 +163,12 @@ export function DashboardPage() {
     const lifetimeReturn = totalCost > 0 ? (totalValue - totalCost) / totalCost : 0
     return { totalValue, totalCost, lifetimeReturn, rows }
   }, [dbHoldings, liveQuotes])
+
+  // Staleness of the cached prices (from the quotes table's updated_at).
+  const quotesTime = quotesAsOf(liveQuotes)
+  const asOfLabel = quotesTime
+    ? `as of ${quotesTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+    : null
 
   const holdingsDisplay = useMemo(() => {
     if (!portfolioMetrics) return []
@@ -401,6 +407,9 @@ export function DashboardPage() {
             <div className="flex items-center gap-2">
               <Eye className="w-5 h-5 text-sky-600 dark:text-sky-400" />
               <h3 className="text-base font-semibold text-stone-900 dark:text-stone-100">Watchlist</h3>
+              {asOfLabel && (
+                <span className="text-xs text-stone-400 dark:text-stone-500">· {asOfLabel}</span>
+              )}
             </div>
             <Button
               variant="ghost"

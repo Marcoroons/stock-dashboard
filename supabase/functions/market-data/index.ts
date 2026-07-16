@@ -23,7 +23,13 @@ const FINNHUB_BASE = "https://finnhub.io/api/v1"
 
 async function finnhub(path: string, apiKey: string): Promise<unknown> {
   const url = `${FINNHUB_BASE}${path}`
-  const res = await fetch(url, { headers: { "X-Finnhub-Token": apiKey } })
+  let res = await fetch(url, { headers: { "X-Finnhub-Token": apiKey } })
+  // On rate limit, wait out Retry-After (default 2s) and try once more.
+  if (res.status === 429) {
+    const ra = parseInt(res.headers.get("Retry-After") ?? "2", 10)
+    await new Promise((r) => setTimeout(r, (isNaN(ra) ? 2 : ra) * 1000))
+    res = await fetch(url, { headers: { "X-Finnhub-Token": apiKey } })
+  }
   if (!res.ok) throw new Error(`Finnhub ${res.status}: ${await res.text()}`)
   return res.json()
 }

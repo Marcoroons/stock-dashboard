@@ -284,13 +284,46 @@ export async function fetchStockAnalysis(symbol: string): Promise<StockAnalysis>
   }
 }
 
+// Reads prices from our shared `quotes` cache (refreshed by the refresh-quotes
+// cron) instead of calling Finnhub per load. Same signature as before, so
+// callers are unchanged. Missing tickers simply aren't in the map (the caller
+// treats them as "no data yet" — the cron picks them up within one cycle).
+// Each quote's `t` carries the row's updated_at (epoch seconds) for staleness.
 export async function fetchBulkQuotes(
   symbols: string[],
 ): Promise<Record<string, FinnhubQuote>> {
-  return invoke<Record<string, FinnhubQuote>>({
-    type: 'bulk-quotes',
-    symbols: symbols.join(','),
-  })
+  const upper = [...new Set(symbols.map(s => s.toUpperCase().trim()).filter(Boolean))]
+  if (upper.length === 0) return {}
+
+  const { data, error } = await supabase
+    .from('quotes')
+    .select('ticker, price, change, percent_change, prev_close, updated_at')
+    .in('ticker', upper)
+  if (error) throw error
+
+  const out: Record<string, FinnhubQuote> = {}
+  for (const r of (data ?? []) as Array<{
+    ticker: string; price: number; change: number
+    percent_change: number; prev_close: number; updated_at: string
+  }>) {
+    out[r.ticker] = {
+      c: Number(r.price) || 0,
+      d: Number(r.change) || 0,
+      dp: Number(r.percent_change) || 0,
+      h: 0, l: 0, o: 0,
+      pc: Number(r.prev_close) || 0,
+      t: Math.floor(new Date(r.updated_at).getTime() / 1000),
+    }
+  }
+  return out
+}
+
+// Most-recent updated_at across a quotes map, for an "as of …" staleness note.
+// Returns null when the map is empty (nothing cached yet).
+export function quotesAsOf(quotes: Record<string, FinnhubQuote>): Date | null {
+  let maxT = 0
+  for (const q of Object.values(quotes)) if (q.t > maxT) maxT = q.t
+  return maxT > 0 ? new Date(maxT * 1000) : null
 }
 
 export async function fetchMarketNews(
