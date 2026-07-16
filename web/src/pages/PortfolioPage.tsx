@@ -9,7 +9,7 @@ import {
 import { Card, MetricCard, Button, Input, Badge, ProgressBar, DataTable, PremiumLock } from '@/components/ui'
 import { MOCK_STRESS_TESTS } from '@/data/mock'
 import { fmtBig, fmtPct, fmt, cn, toDnaInput } from '@/lib/utils'
-import { fetchBulkQuotes, type FinnhubQuote } from '@/lib/market-data'
+import { fetchBulkQuotes, quotesAsOf, type FinnhubQuote } from '@/lib/market-data'
 import { usePortfolio } from '@/hooks/usePortfolio'
 import { useAuth } from '@/context/AuthContext'
 import { PortfolioBuilder } from '@/components/PortfolioBuilder'
@@ -55,7 +55,8 @@ export function PortfolioPage() {
     try {
       const quotes = await fetchBulkQuotes(tickers)
       setLiveQuotes(quotes)
-      setQuotesUpdatedAt(new Date())
+      // Honest staleness: the cache's updated_at, not "now".
+      setQuotesUpdatedAt(quotesAsOf(quotes) ?? new Date())
     } catch {
       // fall back to cost basis as price
     } finally {

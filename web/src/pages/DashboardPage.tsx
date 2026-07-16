@@ -129,6 +129,9 @@ export function DashboardPage() {
   } = useWatchlist()
 
   const [liveQuotes, setLiveQuotes] = useState<Record<string, FinnhubQuote>>({})
+  // True once a quote fetch has settled (resolved, failed, or nothing to fetch),
+  // so the watchlist can show "—" instead of hanging on "Loading…" forever.
+  const [quotesSettled, setQuotesSettled] = useState(false)
   const [showWatchlistAdd, setShowWatchlistAdd] = useState(false)
   const [watchlistInput, setWatchlistInput] = useState('')
   const [watchlistAddError, setWatchlistAddError] = useState<string | null>(null)
@@ -141,10 +144,12 @@ export function DashboardPage() {
   }, [dbHoldings, watchlistItems])
 
   useEffect(() => {
-    if (allTickers.length === 0) return
+    if (allTickers.length === 0) { setQuotesSettled(true); return }
+    setQuotesSettled(false)
     fetchBulkQuotes(allTickers)
       .then(quotes => setLiveQuotes(quotes))
       .catch(() => {})
+      .finally(() => setQuotesSettled(true))
   }, [allTickers.join(',')])
 
   useEffect(() => {
@@ -509,8 +514,10 @@ export function DashboardPage() {
                             </p>
                           )}
                         </>
-                      ) : (
+                      ) : !quotesSettled ? (
                         <p className="text-sm text-stone-400 dark:text-stone-500">Loading…</p>
+                      ) : (
+                        <p className="text-sm text-stone-300 dark:text-stone-600" title="No quote cached yet — updates within a couple of minutes">—</p>
                       )}
                     </div>
                     <button
