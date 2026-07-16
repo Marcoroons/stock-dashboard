@@ -1,0 +1,6 @@
+project_id = "urrhzmmbnnyzemdyqewa"
+
+# Cron-invoked quote refresher. JWT verification is off because it's called by
+# pg_cron (no user session); the x-cron-secret header is the auth gate instead.
+[functions.refresh-quotes]
+verify_jwt = false
